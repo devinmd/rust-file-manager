@@ -8,7 +8,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
             open_file_in_default_app,
-            send_file_to_trash
+            send_file_to_trash//,
+            // get_items
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -17,6 +18,7 @@ fn main() {
 // use std::ffi::OsString;
 // use std::os::windows::fs::MetadataExt;
 use std::path::Path;
+use std::path::PathBuf;
 
 use trash;
 
@@ -58,126 +60,132 @@ struct FileInfoStruct {
     extension: String,       // png, avif, mp3, wav, etc.
 }
 
+/*
 #[tauri::command]
-async fn open_folder_dialog() -> Result<Vec<FileInfoStruct>, String> {
+async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, String> {
+// Fetch all entries (files and folders) in the selected directory
+use std::fs;
+let entries: fs::ReadDir = match fs::read_dir(&selected_folder) {
+    Ok(entries) => entries,
+    Err(_) => return Err(String::from("Failed to read directory")),
+};
+
+// Collect paths of files and folders into a vector of strings
+let mut info: Vec<FileInfoStruct> = Vec::new();
+for entry in entries {
+    if let Ok(entry) = entry {
+        let mut file_name: std::ffi::OsString = entry.file_name();
+        let extension: String = Path::new(&file_name)
+            .extension()
+            .map_or(String::new(), |ext: &std::ffi::OsStr| {
+                ext.to_string_lossy().to_string()
+            });
+        let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
+
+        let created: Option<u64> = metadata
+            .created()
+            .ok()
+            .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+        let modified: Option<u64> = metadata
+            .modified()
+            .ok()
+            .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+        let accessed: Option<u64> = metadata
+            .accessed()
+            .ok()
+            .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+
+        let mut folder_or_file: String = "".to_string();
+        let mut preview_type: String = "".to_string();
+
+        if metadata.is_dir() {
+            folder_or_file = "folder".to_string();
+            preview_type = "folder".to_string();
+        } else {
+            // is file
+            folder_or_file = "file".to_string();
+            preview_type = match extension.to_lowercase().as_str() {
+                "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg"
+                | "apng" | "tiff" | "ico" => String::from("image"), // heic is not supported
+                "mp4" | "mov" | "avi" | "mkv" | "webm" => String::from("video"),
+                "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
+                // "3mf" | "stl" | "obj" => String::from("3D"), // 3d model preview is not implemented
+                _ => String::from("file"),
+            };
+        }
+
+        let item_type: String = "hello".to_string();
+        let name: String = file_name.to_string_lossy().to_string();
+        let size_bytes: Option<u64> = if metadata.is_file() {
+            Some(metadata.len())
+        } else {
+            None
+        };
+        let size_formatted: Option<String> = if let Some(size_bytes) = size_bytes {
+            Some(format_size(size_bytes))
+        } else {
+            None
+        };
+
+        let mut full_path_vec: Vec<String> = selected_folder
+            .components()
+            .enumerate()
+            .filter_map(|(index, c)| {
+                if index != 1 {
+                    Some(c.as_os_str().to_string_lossy().to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        full_path_vec.push(file_name.clone().into_string().unwrap());
+
+        // construct full path
+        let mut full_path = format!(
+            "{}{}{}",
+            selected_folder
+                .to_string_lossy()
+                .to_string()
+                .replace("\\", "/"),
+            "/",
+            file_name.into_string().unwrap()
+        );
+
+        info.push(FileInfoStruct {
+            name,
+            created,
+            modified,
+            accessed,
+            created_formatted: format_timestamp(created),
+            modified_formatted: format_timestamp(modified),
+            accessed_formatted: format_timestamp(accessed),
+            full_path_vec,
+            full_path,
+            size_bytes,
+            size_formatted,
+            folder_or_file,
+            item_type,
+            preview_type,
+            extension,
+        });
+    }
+}
+    Ok((info))
+}*/
+
+#[tauri::command]
+async fn open_folder_dialog() -> Result<String, String> {
     // Note the async fn
-    use std::fs;
     use tauri::api::dialog::blocking::FileDialogBuilder; // Note the updated import
     let dialog_result: Option<std::path::PathBuf> = FileDialogBuilder::new().pick_folder();
 
     // Check if the user selected a folder or cancelled the dialog
     match dialog_result {
-        Some(selected_folder) => {
-            // Fetch all entries (files and folders) in the selected directory
-            let entries: fs::ReadDir = match fs::read_dir(&selected_folder) {
-                Ok(entries) => entries,
-                Err(_) => return Err(String::from("Failed to read directory")),
-            };
-
-            // Collect paths of files and folders into a vector of strings
-            let mut info: Vec<FileInfoStruct> = Vec::new();
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let mut file_name: std::ffi::OsString = entry.file_name();
-                    let extension: String = Path::new(&file_name)
-                        .extension()
-                        .map_or(String::new(), |ext: &std::ffi::OsStr| {
-                            ext.to_string_lossy().to_string()
-                        });
-                    let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
-
-                    let created: Option<u64> = metadata
-                        .created()
-                        .ok()
-                        .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-                    let modified: Option<u64> = metadata
-                        .modified()
-                        .ok()
-                        .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-                    let accessed: Option<u64> = metadata
-                        .accessed()
-                        .ok()
-                        .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-
-                    let mut folder_or_file: String = "".to_string();
-                    let mut preview_type: String = "".to_string();
-
-                    if metadata.is_dir() {
-                        folder_or_file = "folder".to_string();
-                        preview_type = "folder".to_string();
-                    } else {
-                        // is file
-                        folder_or_file = "file".to_string();
-                        preview_type = match extension.to_lowercase().as_str() {
-                            "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg"
-                            | "apng" | "tiff" | "ico" => String::from("image"), // heic is not supported
-                            "mp4" | "mov" | "avi" | "mkv" | "webm" => String::from("video"),
-                            "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
-                            // "3mf" | "stl" | "obj" => String::from("3D"), // 3d model preview is not implemented
-                            _ => String::from("file"),
-                        };
-                    }
-
-                    let item_type: String = "hello".to_string();
-                    let name: String = file_name.to_string_lossy().to_string();
-                    let size_bytes: Option<u64> = if metadata.is_file() {
-                        Some(metadata.len())
-                    } else {
-                        None
-                    };
-                    let size_formatted: Option<String> = if let Some(size_bytes) = size_bytes {
-                        Some(format_size(size_bytes))
-                    } else {
-                        None
-                    };
-
-                    let mut full_path_vec: Vec<String> = selected_folder
-                        .components()
-                        .enumerate()
-                        .filter_map(|(index, c)| {
-                            if index != 1 {
-                                Some(c.as_os_str().to_string_lossy().to_string())
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
-
-                    full_path_vec.push(file_name.clone().into_string().unwrap());
-
-                    // construct full path
-                    let mut full_path = format!(
-                        "{}{}{}",
-                        selected_folder
-                            .to_string_lossy()
-                            .to_string()
-                            .replace("\\", "/"),
-                        "/",
-                        file_name.into_string().unwrap()
-                    );
-
-                    info.push(FileInfoStruct {
-                        name,
-                        created,
-                        modified,
-                        accessed,
-                        created_formatted: format_timestamp(created),
-                        modified_formatted: format_timestamp(modified),
-                        accessed_formatted: format_timestamp(accessed),
-                        full_path_vec,
-                        full_path,
-                        size_bytes,
-                        size_formatted,
-                        folder_or_file,
-                        item_type,
-                        preview_type,
-                        extension,
-                    });
-                }
-            }
-
-            Ok(info)
-        }
+        Some(selected_folder) => Ok(selected_folder
+            .to_string_lossy()
+            .to_string()
+            .replace("\\", "/")),
         None => {
             // Handle the case when the user cancels the dialog
             Err(String::from("Dialog was cancelled"))

@@ -11,8 +11,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 document.getElementById("btn-openfolder").addEventListener("click", async () => {
   try {
-    const data = await invoke("open_folder_dialog");
-    console.log(data);
+    const selected_folder_path = await invoke("open_folder_dialog");
+    console.log(selected_folder_path);
+    const data = await invoke('get_items');
     display_items(data);
   } catch (error) {
     console.error("Error selecting folder:", error);
@@ -28,11 +29,12 @@ function display_items(data) {
   const grid = document.querySelector("#items");
   grid.innerHTML = "";
   // update folder name
-  const vec = data[0].full_path_vec
-  for(let i = 0; i < vec.length-1; i++){
-    let btn = document.createElement('button')
-    btn.innerHTML = vec[i]
-    document.querySelector('#path').append(btn)
+  const vec = data[0].full_path_vec;
+  document.querySelector("#path").innerHTMl = "";
+  for (let i = 0; i < vec.length - 1; i++) {
+    let btn = document.createElement("button");
+    btn.innerHTML = vec[i];
+    document.querySelector("#path").append(btn);
   }
   document.querySelector("#current-folder-info").innerHTML = data[0].full_path + " - " + data.length + " items";
 
