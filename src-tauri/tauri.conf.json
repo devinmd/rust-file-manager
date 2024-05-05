@@ -34,9 +34,18 @@
     },
     "windows": [
       {
-        "title": "test-app",
-        "width": 800,
-        "height": 600
+        "fullscreen": false,
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "title": "File Manager",
+        "x": 100,
+        "y": 400,
+        "center": true,
+        "minWidth": 100,
+        "minHeight": 100,
+        "maximizable": true,
+        "minimizable": true
       }
     ],
     "security": {

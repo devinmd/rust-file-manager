@@ -10,9 +10,11 @@
 - rename file
 - tagging
 - add description and url
-- navigate folders
-- column view
 - arrow key navigation
 - decide on ui
-- github
 - test on mac
+- back button
+- formatted file type
+- folder icons
+  - books
+  - games

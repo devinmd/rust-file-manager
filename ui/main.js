@@ -13,12 +13,23 @@ document.getElementById("btn-openfolder").addEventListener("click", async () => 
   try {
     const selected_folder_path = await invoke("open_folder_dialog");
     console.log(selected_folder_path);
-    const data = await invoke('get_items');
-    display_items(data);
+    goto_folder(selected_folder_path);
   } catch (error) {
     console.error("Error selecting folder:", error);
   }
 });
+
+async function goto_folder(selected_folder_path) {
+  const data = await invoke("get_items", { selectedFolder: selected_folder_path });
+  console.log(data);
+  display_items(data);
+  history.push(selected_folder_path);
+}
+
+document.querySelector("#btn-back").addEventListener("click", () => {
+  goto_folder(history[history.length - 2]);
+});
+const history = [];
 
 const page_size = 50;
 
@@ -30,9 +41,14 @@ function display_items(data) {
   grid.innerHTML = "";
   // update folder name
   const vec = data[0].full_path_vec;
-  document.querySelector("#path").innerHTMl = "";
+  document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length - 1; i++) {
     let btn = document.createElement("button");
+    btn.onclick = function () {
+      // go to path
+      vec.length = i + 1;
+      goto_folder(vec.join("/"));
+    };
     btn.innerHTML = vec[i];
     document.querySelector("#path").append(btn);
   }
@@ -55,11 +71,18 @@ function display_items(data) {
     load_more.remove();
     for (let i in spliced) {
       const item = spliced[i];
-      const item_container = document.createElement("div");
+      const item_container = document.createElement("button");
       const item_name = document.createElement("p");
       item_name.innerHTML = item.name;
       item_container.onclick = function () {
         select_item(item);
+      };
+      item_container.ondblclick = function () {
+        if (item.item_type == "folder") {
+          goto_folder(item.full_path);
+        } else {
+          invoke("open_file_in_default_app", { path: item.full_path });
+        }
       };
       item_container.append(generate_item_preview(item), item_name);
       grid.appendChild(item_container);
@@ -83,7 +106,7 @@ function select_item(item) {
   const info = document.createElement("div");
   info.id = "info";
   const type = document.createElement("p");
-  type.innerHTML = `Type<span>${item.preview_type}</span>`;
+  type.innerHTML = `Type<span>${item.item_type}</span>`;
   const size = document.createElement("p");
   size.innerHTML = `Size<span>${item.size_formatted}</span>`;
   const created = document.createElement("p");
@@ -111,7 +134,39 @@ function select_item(item) {
 
 function generate_item_preview(item, video_controls = false) {
   let elem;
-  switch (item.preview_type) {
+  switch (item.item_type) {
+    case "folder":
+      let icon;
+      elem = document.createElement("img");
+      switch (item.name.toLowerCase()) {
+        case "downloads":
+          elem.src = "/assets/folders/downloads.svg";
+          break;
+        case "images":
+        case "photos":
+        case "icons":
+        case "pictures":
+          elem.src = "/assets/folders/photos.svg";
+          break;
+        case "videos":
+        case "movies":
+          elem.src = "/assets/folders/videos.svg";
+          break;
+        case "src":
+          elem.src = "/assets/folders/src.svg";
+          break;
+        case "documents":
+          elem.src = "/assets/folders/documents.svg";
+          break;
+        case "3d models":
+        case "3d objects":
+          elem.src = "/assets/folders/3d.svg";
+          break;
+        default:
+          elem.src = "/assets/folders/folder.svg";
+          break;
+      }
+      break;
     case "image":
       elem = document.createElement("img");
       elem.src = convertFileSrc(item.full_path);
@@ -125,17 +180,13 @@ function generate_item_preview(item, video_controls = false) {
       elem = document.createElement("audio");
       elem.src = convertFileSrc(item.full_path);
       break;
-    case "file":
+    default: // all other things
       elem = document.createElement("img");
-      elem.src = "/assets/file.svg";
-      break;
-    case "folder":
-      elem = document.createElement("img");
-      elem.src = "/assets/folder.svg";
+      elem.src = `/assets/files/${item.extension.toLowerCase()}.svg`;
       break;
   }
   elem.onerror = function () {
-    this.src = "/assets/file.svg";
+    this.src = "/assets/files/file.svg";
   };
   return elem;
 }

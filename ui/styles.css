@@ -8,12 +8,13 @@
 body {
   margin: 0;
   font-family: sans-serif;
-overflow-y: hidden;
+  overflow-y: hidden;
 }
 
 img,
 video {
   max-width: 100%;
+  max-height: 100%;
   border-radius: 2%;
 }
 
@@ -81,9 +82,11 @@ div#content div#items {
   overflow-y: auto;
 }
 
-div#content div#items div {
+div#content div#items button {
   display: flex;
   flex-direction: column;
+  border: none;
+  background-color: transparent;
   gap: 8px;
   padding: 8px;
   justify-content: start;
@@ -92,12 +95,12 @@ div#content div#items div {
   align-items: center;
 }
 
-div#content div#items div:hover {
-  background-color: #f8f8f8;
+div#content div#items button:hover {
+  background-color: var(--bg-d1);
   /* outline: 2px solid blue; */
 }
 
-div#content div#items div p {
+div#content div#items button p {
   text-align: center;
 }
 
