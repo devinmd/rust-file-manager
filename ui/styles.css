@@ -1,0 +1,136 @@
+:root {
+  --bg: #ffffff;
+  --bg-d1: #efefef;
+  --text: #202020;
+  --text-l1: #505050;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+overflow-y: hidden;
+}
+
+img,
+video {
+  max-width: 100%;
+  border-radius: 2%;
+}
+
+p {
+  margin: 0;
+  color: var(--text);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+div#container {
+  display: flex;
+  flex-direction: column;
+}
+
+div#top-bar {
+  height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 2px solid var(--bg-d1);
+}
+
+div#top-bar div#path {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+div#top-bar p#current-folder-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+div#bottom-bar p#current-folder-info {
+  font-size: 12px;
+}
+
+div#bottom-bar {
+  height: 32px;
+  display: flex;
+  max-height: 32px;
+  flex-direction: row;
+  background-color: var(--bg);
+  align-items: center;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  border-top: 2px solid var(--bg-d1);
+}
+
+div#content {
+  display: flex;
+  flex-direction: row;
+}
+
+div#content div#items {
+  padding: 32px;
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  height: calc(100vh - 128px);
+  row-gap: 16px;
+  overflow-y: auto;
+}
+
+div#content div#items div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  justify-content: start;
+  border-radius: 8px;
+  height: fit-content;
+  align-items: center;
+}
+
+div#content div#items div:hover {
+  background-color: #f8f8f8;
+  /* outline: 2px solid blue; */
+}
+
+div#content div#items div p {
+  text-align: center;
+}
+
+div#content div#selected-file {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 128px);
+  overflow-y: auto;
+  border-left: 2px solid var(--bg-d1);
+  padding: 16px;
+  min-width: 25%;
+  max-width: 25%;
+}
+
+div#content div#selected-file div#info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+div#content div#selected-file div#info p#item-name {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text);
+}
+
+div#content div#selected-file div#info p {
+  font-size: 16px;
+  color: var(--text-l1);
+}
+
+div#content div#selected-file div#info p span {
+  float: right;
+}
