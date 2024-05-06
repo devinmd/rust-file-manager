@@ -9,7 +9,8 @@ fn main() {
             open_folder_dialog,
             open_file_in_default_app,
             send_file_to_trash,
-            get_items
+            get_items,
+            rename_item
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -34,6 +35,12 @@ fn send_file_to_trash(path: String) {
     trash::delete(path).unwrap();
 }
 
+#[tauri::command]
+fn rename_item(path: String, new: String) {
+    print!("{}", new);
+    fs::rename(path, new);
+}
+
 use std::fmt;
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -50,11 +57,11 @@ struct FileInfoStruct {
     created_formatted: String,
     modified_formatted: String,
     accessed_formatted: String,
-    full_path_vec: Vec<String>,
+    container_path_vec: Vec<String>,
     full_path: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
     size_formatted: Option<String>, // New field for formatted size
-    item_type: String,    // image, video, text, 3d model, audio, folder
+    item_type: String,       // image, video, text, 3d model, audio, folder
     extension: String,       // png, avif, mp3, wav, etc.
 }
 
@@ -120,7 +127,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 None
             };
 
-            let mut full_path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
+            let mut container_path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
                 .components()
                 .enumerate()
                 .filter_map(|(index, c)| {
@@ -132,7 +139,11 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 })
                 .collect();
 
-            full_path_vec.push(file_name.clone().into_string().unwrap());
+            // get path to item's container
+            // let container_path_vec: Vec<String> = full_path_vec.clone();
+
+            // full path vec is the same as container path vec BUT has the filename at the end
+            // full_path_vec.push(file_name.clone().into_string().unwrap());
 
             // construct full path
             let mut full_path: String = format!(
@@ -150,7 +161,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 created_formatted: format_timestamp(created),
                 modified_formatted: format_timestamp(modified),
                 accessed_formatted: format_timestamp(accessed),
-                full_path_vec,
+                container_path_vec,
                 full_path,
                 size_bytes,
                 size_formatted,
@@ -201,7 +212,7 @@ fn format_size(size: u64) -> String {
     const MB: f64 = KB * 1024.0;
     const GB: f64 = MB * 1024.0;
     if size < KB as u64 {
-        format!("{} B", size)
+        format!("{} Bytes", size)
     } else if size < MB as u64 {
         format!("{:.1} KB", size as f64 / KB)
     } else if size < GB as u64 {

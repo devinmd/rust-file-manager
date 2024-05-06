@@ -1,6 +1,5 @@
 # rust file manager
 
-
 ## todo
 - walk folder mode
   - walks all subfolders and displays those files too as if they were in the main folder
@@ -15,6 +14,7 @@
 - test on mac
 - back button
 - formatted file type
+- app icon
 - folder icons
   - books
   - games

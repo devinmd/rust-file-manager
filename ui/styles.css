@@ -7,8 +7,11 @@
 
 body {
   margin: 0;
-  font-family: sans-serif;
   overflow-y: hidden;
+}
+
+* {
+  font-family: "Roboto";
 }
 
 img,
@@ -25,23 +28,65 @@ p {
   overflow-wrap: anywhere;
 }
 
+button {
+  color: var(--text);
+}
+
 div#container {
   display: flex;
   flex-direction: column;
 }
 
 div#top-bar {
-  height: 32px;
+  height: 36px;
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 16px;
+  padding: 0 8px;
   border-bottom: 2px solid var(--bg-d1);
+}
+
+div#top-bar button#btn-openfolder {
+  background-color: #efefef;
+  border: none;
+  border-radius: 4px;
+  padding: 0 4px;
+  cursor: pointer;
+  height: 24px;
+  font-weight: 400;
+  color: #202020;
+}
+
+div#top-bar button#btn-openfolder:hover {
+  background-color: #dfdfdf;
 }
 
 div#top-bar div#path {
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+div#top-bar div#path img {
+  height: 24px;
+  object-fit: cover;
+  width: 18px;
+}
+
+div#top-bar div#path button {
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 0 4px;
+  cursor: pointer;
+  height: 24px;
+  font-weight: 400;
+  color: #202020;
+}
+
+div#top-bar div#path button:hover {
+  background-color: #efefef;
 }
 
 div#top-bar p#current-folder-name {
@@ -54,12 +99,13 @@ div#bottom-bar p#current-folder-info {
 }
 
 div#bottom-bar {
-  height: 32px;
+  height: 24px;
   display: flex;
   max-height: 32px;
   flex-direction: row;
   background-color: var(--bg);
   align-items: center;
+  padding-left: 8px;
   width: 100%;
   bottom: 0;
   left: 0;
@@ -80,6 +126,13 @@ div#content div#items {
   height: calc(100vh - 128px);
   row-gap: 16px;
   overflow-y: auto;
+}
+
+div#content div#items button#btn-load-more {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 div#content div#items button {
@@ -107,12 +160,35 @@ div#content div#items button p {
 div#content div#selected-file {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 128px);
+  height: calc(100vh - 96px);
   overflow-y: auto;
   border-left: 2px solid var(--bg-d1);
   padding: 16px;
   min-width: 25%;
   max-width: 25%;
+  justify-content: start;
+}
+
+div#content div#selected-file div#actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+}
+div#content div#selected-file div#actions button {
+  height: 24px;
+  flex-grow: 1;
+  border: none;
+  border-radius: 8px;
+  color: #505050;
+  font-weight: 500;
+  cursor: pointer;
+  background: #efefef;
+}
+
+div#content div#selected-file div#actions button:hover {
+  background-color: #dfdfdf;
 }
 
 div#content div#selected-file div#info {
@@ -125,7 +201,7 @@ div#content div#selected-file div#info {
 div#content div#selected-file div#info p#item-name {
   margin-bottom: 8px;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text);
 }
 

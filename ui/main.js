@@ -23,13 +23,7 @@ async function goto_folder(selected_folder_path) {
   const data = await invoke("get_items", { selectedFolder: selected_folder_path });
   console.log(data);
   display_items(data);
-  history.push(selected_folder_path);
 }
-
-document.querySelector("#btn-back").addEventListener("click", () => {
-  goto_folder(history[history.length - 2]);
-});
-const history = [];
 
 const page_size = 50;
 
@@ -40,22 +34,30 @@ function display_items(data) {
   const grid = document.querySelector("#items");
   grid.innerHTML = "";
   // update folder name
-  const vec = data[0].full_path_vec;
+  const vec = data[0].container_path_vec;
   document.querySelector("#path").innerHTML = "";
-  for (let i = 0; i < vec.length - 1; i++) {
+  for (let i = 1; i < vec.length; i++) {
     let btn = document.createElement("button");
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;
+      console.log(vec.join("/"));
       goto_folder(vec.join("/"));
     };
     btn.innerHTML = vec[i];
-    document.querySelector("#path").append(btn);
+    let caret = document.createElement("img");
+    caret.src = "/assets/caret.svg";
+    if (i == 1) {
+      document.querySelector("#path").append(btn);
+      continue;
+    }
+    document.querySelector("#path").append(caret, btn);
   }
-  document.querySelector("#current-folder-info").innerHTML = data[0].full_path + " - " + data.length + " items";
+  document.querySelector("#current-folder-info").innerHTML = data.length + " items";
 
   const load_more = document.createElement("button");
-  load_more.innerHTML = "LOAD MORE";
+  load_more.innerHTML = "Load More";
+  load_more.id = "btn-load-more";
   load_more.onclick = function () {
     display_page(data, page_size, page_size * (current_page + 1));
     current_page += 1;
@@ -87,7 +89,7 @@ function display_items(data) {
       item_container.append(generate_item_preview(item), item_name);
       grid.appendChild(item_container);
     }
-    if (amount * (offset / amount + 1) < clone.length) {
+    if (amount * (offset / amount + 1) < items.length) {
       grid.appendChild(load_more);
     }
   }
@@ -123,13 +125,29 @@ function select_item(item) {
   btn_delete.onclick = function () {
     invoke("send_file_to_trash", { path: item.full_path });
   };
+  // const rename_input = document.createElement("input");
+  // rename_input.type = "text";
+  // rename_input.placeholder = "New Name";
+  // rename_input.value = item.name;
+  const btn_rename = document.createElement("button");
+  btn_rename.innerHTML = "Rename";
+  // btn_rename.onclick = function () {
+  // const new_name = rename_input.value;
+  // item.container_path_vec.push(new_name);
+  // console.log(item.container_path_vec.join("/"));
+  // invoke("rename_item", { path: item.full_path, new: item.full_path + "test" });
+  // };
   const btn_open = document.createElement("button");
   btn_open.innerHTML = "Open";
   btn_open.onclick = function () {
     invoke("open_file_in_default_app", { path: item.full_path });
   };
 
-  sidebar.append(generate_item_preview(item, true), info, btn_open, btn_delete);
+  const actions = document.createElement("div");
+  actions.id = "actions";
+  actions.append(btn_open, btn_rename, btn_delete);
+
+  sidebar.append(generate_item_preview(item, true), info, actions);
 }
 
 function generate_item_preview(item, video_controls = false) {
