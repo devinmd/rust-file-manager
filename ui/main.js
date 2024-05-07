@@ -7,7 +7,7 @@ const { invoke, convertFileSrc } = window.__TAURI__.tauri;
 
 window.addEventListener("DOMContentLoaded", () => {
   console.log("loaded");
-  change_theme(default_theme)
+  change_theme(default_theme);
 });
 
 document.getElementById("btn-openfolder").addEventListener("click", async () => {
@@ -165,18 +165,24 @@ function generate_item_preview(item, video_controls = false) {
         case "images":
         case "photos":
         case "icons":
+        case "assets":
         case "pictures":
           elem.src = "/assets/folders/photos.svg";
           break;
         case "videos":
-        case "movies":
           elem.src = "/assets/folders/videos.svg";
+          break;
+        case "movies":
+          elem.src = "/assets/folders/movies.svg";
           break;
         case "src":
           elem.src = "/assets/folders/src.svg";
           break;
         case "documents":
           elem.src = "/assets/folders/documents.svg";
+          break;
+        case "desktop":
+          elem.src = "/assets/folders/desktop.svg";
           break;
         case "3d models":
         case "3d objects":
