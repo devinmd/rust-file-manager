@@ -4,7 +4,8 @@
 - walk folder mode
   - walks all subfolders and displays those files too as if they were in the main folder
 - column view
-- dark mode
+- custom themes
+- store user data (themes, etc.)
 - metadata storage
 - rename file
 - tagging

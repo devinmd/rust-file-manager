@@ -7,6 +7,7 @@ const { invoke, convertFileSrc } = window.__TAURI__.tauri;
 
 window.addEventListener("DOMContentLoaded", () => {
   console.log("loaded");
+  change_theme(default_theme)
 });
 
 document.getElementById("btn-openfolder").addEventListener("click", async () => {
@@ -26,6 +27,7 @@ async function goto_folder(selected_folder_path) {
 }
 
 const page_size = 50;
+const default_theme = "dark";
 
 function display_items(data) {
   // remove dotfiles
@@ -207,4 +209,9 @@ function generate_item_preview(item, video_controls = false) {
     this.src = "/assets/files/file.svg";
   };
   return elem;
+}
+
+function change_theme(t) {
+  const root = document.querySelector(":root");
+  root.setAttribute("theme", t);
 }
