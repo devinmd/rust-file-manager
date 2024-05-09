@@ -1,7 +1,9 @@
 {
   "build": {
-    "devPath": "../ui",
-    "distDir": "../ui",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
     "withGlobalTauri": true
   },
   "package": {
@@ -36,7 +38,7 @@
       {
         "fullscreen": false,
         "width": 1200,
-        "height": 800,
+        "height": 700,
         "resizable": true,
         "title": "File Manager",
         "x": 100,

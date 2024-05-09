@@ -1,5 +1,5 @@
 //
-const { invoke, convertFileSrc } = window.__TAURI__.tauri;
+const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
 
 // import { appDataDir, join } from "@tauri-apps/api/path";
 // import { convertFileSrc } from "@tauri-apps/api/tauri";
@@ -10,7 +10,8 @@ window.addEventListener("DOMContentLoaded", () => {
   change_theme(default_theme);
 });
 
-document.getElementById("btn-openfolder").addEventListener("click", async () => {
+document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
+  // Your event listener code here
   try {
     const selected_folder_path = await invoke("open_folder_dialog");
     console.log(selected_folder_path);
@@ -20,7 +21,11 @@ document.getElementById("btn-openfolder").addEventListener("click", async () => 
   }
 });
 
-async function goto_folder(selected_folder_path) {
+document.getElementById("btn-home")?.addEventListener("click", async () => {
+  // home button
+});
+
+async function goto_folder(selected_folder_path: string) {
   const data = await invoke("get_items", { selectedFolder: selected_folder_path });
   console.log(data);
   display_items(data);
@@ -29,7 +34,7 @@ async function goto_folder(selected_folder_path) {
 const page_size = 50;
 const default_theme = "dark";
 
-function display_items(data) {
+function display_items(data: Item[]): void {
   // remove dotfiles
   data = data.filter((obj) => !obj.name.startsWith("."));
   // clear grid
@@ -37,7 +42,7 @@ function display_items(data) {
   grid.innerHTML = "";
   // update folder name
   const vec = data[0].container_path_vec;
-  document.querySelector("#path").innerHTML = "";
+  if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 1; i < vec.length; i++) {
     let btn = document.createElement("button");
     btn.onclick = function () {
@@ -48,7 +53,7 @@ function display_items(data) {
     };
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
-    caret.src = "/assets/caret.svg";
+    caret.src = "src/assets/caret.svg";
     if (i == 1) {
       document.querySelector("#path").append(btn);
       continue;
@@ -69,7 +74,7 @@ function display_items(data) {
   display_page(data, page_size, 0);
   let current_page = 0;
 
-  function display_page(items, amount, offset) {
+  function display_page(items: Item[], amount: number, offset: number) {
     let clone = items.slice(0);
     let spliced = clone.splice(offset, amount);
     load_more.remove();
@@ -97,7 +102,19 @@ function display_items(data) {
   }
 }
 
-function select_item(item) {
+interface Item {
+  item_type: string;
+  full_path: string;
+  name: string;
+  size_formatted: string;
+  created_formatted: string;
+  extension: string;
+  modified_formatted: string;
+  container_path_vec: string[];
+  accessed_formatted: string;
+}
+
+function select_item(item: Item): void {
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
 
@@ -152,49 +169,51 @@ function select_item(item) {
   sidebar.append(generate_item_preview(item, true), info, actions);
 }
 
-function generate_item_preview(item, video_controls = false) {
-  let elem;
+function generate_item_preview(
+  item: Item,
+  video_controls: boolean = false
+): HTMLImageElement | HTMLAudioElement | HTMLVideoElement {
+  let elem: HTMLImageElement | HTMLAudioElement | HTMLVideoElement | null;
   switch (item.item_type) {
     case "folder":
-      let icon;
       elem = document.createElement("img");
       switch (item.name.toLowerCase()) {
         case "downloads":
-          elem.src = "/assets/folders/downloads.svg";
+          elem.src = "src/assets/folders/downloads.svg";
           break;
         case "images":
         case "photos":
         case "icons":
         case "assets":
         case "pictures":
-          elem.src = "/assets/folders/photos.svg";
+          elem.src = "src/assets/folders/photos.svg";
           break;
         case "videos":
-          elem.src = "/assets/folders/videos.svg";
+          elem.src = "src/assets/folders/videos.svg";
           break;
         case "movies":
-          elem.src = "/assets/folders/movies.svg";
+          elem.src = "src/assets/folders/movies.svg";
           break;
         case "src":
-          elem.src = "/assets/folders/src.svg";
+          elem.src = "src/assets/folders/src.svg";
           break;
         case "documents":
-          elem.src = "/assets/folders/documents.svg";
+          elem.src = "src/assets/folders/documents.svg";
           break;
         case "desktop":
-          elem.src = "/assets/folders/desktop.svg";
+          elem.src = "src/assets/folders/desktop.svg";
           break;
         case "3d models":
         case "3d objects":
-          elem.src = "/assets/folders/3d.svg";
+          elem.src = "src/assets/folders/3d.svg";
           break;
         default:
-          elem.src = "/assets/folders/folder.svg";
+          elem.src = "src/assets/folders/folder.svg";
           break;
       }
       break;
     case "image":
-      elem = document.createElement("img");
+      elem = document.createElement("img") as HTMLImageElement;
       elem.src = convertFileSrc(item.full_path);
       break;
     case "video":
@@ -208,16 +227,16 @@ function generate_item_preview(item, video_controls = false) {
       break;
     default: // all other things
       elem = document.createElement("img");
-      elem.src = `/assets/files/${item.extension.toLowerCase()}.svg`;
+      elem.src = `src/assets/files/${item.extension.toLowerCase()}.svg`;
       break;
   }
-  elem.onerror = function () {
-    this.src = "/assets/files/file.svg";
+  elem.onerror = function (): void {
+    // this.src = "src/assets/files/file.svg";
   };
   return elem;
 }
 
-function change_theme(t) {
+function change_theme(t: string): void {
   const root = document.querySelector(":root");
   root.setAttribute("theme", t);
 }
