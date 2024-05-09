@@ -8,7 +8,27 @@ const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
 window.addEventListener("DOMContentLoaded", () => {
   console.log("loaded");
   change_theme(default_theme);
+  get_system_info();
 });
+
+async function get_system_info() {
+  const data = await invoke("get_system_info");
+  console.log(data);
+  let disks = data.disks;
+  document.querySelector("#greeting").innerHTML = data.name;
+  disks[0].name = data.name;
+  for (let i in disks) {
+    let d = disks[i];
+    let container = document.createElement("div");
+    let name = document.createElement("p");
+    name.innerHTML = `${d.name} (${d.mount_point})`;
+    let text = document.createElement("p");
+    text.innerHTML = `${d.available_space_formatted} of ${d.total_space_formatted} free`;
+
+    container.append(name, text);
+    document.querySelector("#drives").append(container);
+  }
+}
 
 document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
   // Your event listener code here
@@ -22,6 +42,8 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
 });
 
 document.getElementById("btn-home")?.addEventListener("click", async () => {
+  document.querySelector("#home").setAttribute("style", "display: flex;");
+  document.querySelector("#content").setAttribute("style", "display: none;");
   // home button
 });
 
@@ -35,6 +57,9 @@ const page_size = 50;
 const default_theme = "dark";
 
 function display_items(data: Item[]): void {
+  // hide home, show files
+  document.querySelector("#home").setAttribute("style", "display: none;");
+  document.querySelector("#content").setAttribute("style", "display: flex;");
   // remove dotfiles
   data = data.filter((obj) => !obj.name.startsWith("."));
   // clear grid
@@ -42,8 +67,9 @@ function display_items(data: Item[]): void {
   grid.innerHTML = "";
   // update folder name
   const vec = data[0].container_path_vec;
+  vec[0] = "C:/";
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
-  for (let i = 1; i < vec.length; i++) {
+  for (let i = 0; i < vec.length; i++) {
     let btn = document.createElement("button");
     btn.onclick = function () {
       // go to path
@@ -230,9 +256,13 @@ function generate_item_preview(
       elem.src = `ui/assets/files/${item.extension.toLowerCase()}.svg`;
       break;
   }
-  elem.onerror = function (): void {
-    // this.src = "ui/assets/files/file.svg";
-  };
+  elem.addEventListener(
+    "error",
+    function () {
+      elem.src = "ui/assets/files/file.svg";
+    },
+    { once: true }
+  );
   return elem;
 }
 

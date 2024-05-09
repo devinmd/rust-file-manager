@@ -10,7 +10,8 @@ fn main() {
             open_file_in_default_app,
             send_file_to_trash,
             get_items,
-            rename_item
+            rename_item,
+            get_system_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -21,6 +22,7 @@ fn main() {
 use std::path::Path;
 use std::path::PathBuf;
 
+use sysinfo::Disk;
 use trash;
 
 use serde::Serialize;
@@ -28,6 +30,70 @@ use serde::Serialize;
 #[tauri::command]
 fn open_file_in_default_app(path: String) {
     open::that(path);
+}
+
+use sysinfo::{Disks, System};
+
+#[derive(Serialize)]
+struct DiskInfo {
+    name: String,
+    kind: String,
+    file_system: String,
+    total_space: u64,
+    mount_point: String,
+    available_space: u64,
+    available_space_formatted: String,
+    total_space_formatted: String,
+    space_used: u64,
+    space_used_formatted: String,
+    is_removable: bool,
+}
+
+#[derive(Serialize)]
+struct SystemInfoStruct {
+    os: Option<String>,
+    version: Option<String>,
+    name: Option<String>,
+    disks: Vec<DiskInfo>,
+}
+
+#[tauri::command]
+fn get_system_info() -> Result<SystemInfoStruct, String> {
+    let mut sys: System = System::new_all();
+
+    sys.refresh_all();
+
+    let os: Option<String> = System::name().map(|s| s.to_string());
+    let version: Option<String> = System::os_version().map(|s| s.to_string());
+    let name: Option<String> = System::host_name().map(|s| s.to_string());
+
+    let disks_list: Disks = Disks::new_with_refreshed_list();
+    let mut disks: Vec<DiskInfo> = Vec::new(); // Initialize disk_info vector
+
+    for disk in disks_list.list() {
+        disks.push(DiskInfo {
+            name: disk.name().to_string_lossy().to_string(),
+            kind: disk.kind().to_string(),
+            file_system: disk.file_system().to_string_lossy().to_string(),
+            total_space: disk.total_space(),
+            mount_point: disk.mount_point().to_string_lossy().to_string(),
+            available_space: disk.available_space(),
+            available_space_formatted: format_size(disk.available_space()),
+            total_space_formatted: format_size(disk.total_space()),
+            space_used: disk.total_space() - disk.available_space(),
+            space_used_formatted: format_size(disk.total_space() - disk.available_space()),
+            is_removable: disk.is_removable(),
+        });
+    }
+
+    let info = SystemInfoStruct {
+        os,
+        version,
+        name,
+        disks,
+    };
+
+    Ok(info)
 }
 
 #[tauri::command]
@@ -207,16 +273,20 @@ fn format_timestamp(ms_since_epoch: Option<u64>) -> String {
 
 // Helper function to format size
 fn format_size(size: u64) -> String {
-    const KB: f64 = 1024.0;
-    const MB: f64 = KB * 1024.0;
-    const GB: f64 = MB * 1024.0;
+    const AMT: f64 = 1000.0;
+    const KB: f64 = AMT;
+    const MB: f64 = KB * AMT;
+    const GB: f64 = MB * AMT;
+    const TB: f64 = GB * AMT;
     if size < KB as u64 {
         format!("{} Bytes", size)
     } else if size < MB as u64 {
         format!("{:.1} KB", size as f64 / KB)
     } else if size < GB as u64 {
         format!("{:.1} MB", size as f64 / MB)
-    } else {
+    } else if size < TB as u64 {
         format!("{:.1} GB", size as f64 / GB)
+    } else {
+        format!("{:.1} TB", size as f64 / TB)
     }
 }

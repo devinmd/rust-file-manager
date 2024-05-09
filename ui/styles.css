@@ -48,7 +48,6 @@ body {
 img,
 video {
   max-width: 100%;
-  max-height: 100%;
   border-radius: 2%;
 }
 
@@ -61,9 +60,67 @@ p {
   overflow-wrap: anywhere;
 }
 
+h1 {
+  font-size: 32px;
+  color: var(--text);
+  font-weight: 600;
+  margin: 0;
+}
+
+h2 {
+  font-size: 28px;
+  color: var(--text);
+  font-weight: 600;
+  margin: 0;
+}
+
+h3 {
+  font-size: 24px;
+  margin: 0;
+
+  color: var(--text);
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+  margin: 0;
+}
+
 button {
   color: var(--text);
   font-size: 12px;
+}
+
+div#home {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+div#home div#drives {
+  display: flex;
+}
+
+div#home div#drives div {
+  background-color: var(--bg-1);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+div#home div#drives div p{
+  font-size: 14px;
 }
 
 div#container {
@@ -150,6 +207,7 @@ div#bottom-bar {
 div#content {
   display: flex;
   flex-direction: row;
+  display: none;
 }
 
 div#content div#items {
