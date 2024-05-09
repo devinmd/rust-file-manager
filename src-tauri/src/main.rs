@@ -41,7 +41,6 @@ fn rename_item(path: String, new: String) {
     fs::rename(path, new);
 }
 
-use std::fmt;
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -78,7 +77,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
     let mut info: Vec<FileInfoStruct> = Vec::new();
     for entry in entries {
         if let Ok(entry) = entry {
-            let mut file_name: std::ffi::OsString = entry.file_name();
+            let file_name: std::ffi::OsString = entry.file_name();
             let extension: String = Path::new(&file_name)
                 .extension()
                 .map_or(String::new(), |ext: &std::ffi::OsStr| {
@@ -99,7 +98,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 .ok()
                 .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
 
-            let mut item_type: String = "".to_string();
+            let item_type: String;
 
             if metadata.is_dir() {
                 item_type = "folder".to_string();
@@ -127,7 +126,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 None
             };
 
-            let mut container_path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
+            let container_path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
                 .components()
                 .enumerate()
                 .filter_map(|(index, c)| {
@@ -146,7 +145,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             // full_path_vec.push(file_name.clone().into_string().unwrap());
 
             // construct full path
-            let mut full_path: String = format!(
+            let full_path: String = format!(
                 "{}{}{}",
                 selected_folder.replace("\\", "/"),
                 "/",
