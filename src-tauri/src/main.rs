@@ -170,7 +170,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             });
         }
     }
-    Ok((info))
+    Ok(info)
 }
 
 #[tauri::command]

@@ -53,7 +53,7 @@ function display_items(data: Item[]): void {
     };
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
-    caret.src = "src/assets/caret.svg";
+    caret.src = "ui/assets/caret.svg";
     if (i == 1) {
       document.querySelector("#path").append(btn);
       continue;
@@ -179,36 +179,36 @@ function generate_item_preview(
       elem = document.createElement("img");
       switch (item.name.toLowerCase()) {
         case "downloads":
-          elem.src = "src/assets/folders/downloads.svg";
+          elem.src = "ui/assets/folders/downloads.svg";
           break;
         case "images":
         case "photos":
         case "icons":
         case "assets":
         case "pictures":
-          elem.src = "src/assets/folders/photos.svg";
+          elem.src = "ui/assets/folders/photos.svg";
           break;
         case "videos":
-          elem.src = "src/assets/folders/videos.svg";
+          elem.src = "ui/assets/folders/videos.svg";
           break;
         case "movies":
-          elem.src = "src/assets/folders/movies.svg";
+          elem.src = "ui/assets/folders/movies.svg";
           break;
         case "src":
-          elem.src = "src/assets/folders/src.svg";
+          elem.src = "ui/assets/folders/src.svg";
           break;
         case "documents":
-          elem.src = "src/assets/folders/documents.svg";
+          elem.src = "ui/assets/folders/documents.svg";
           break;
         case "desktop":
-          elem.src = "src/assets/folders/desktop.svg";
+          elem.src = "ui/assets/folders/desktop.svg";
           break;
         case "3d models":
         case "3d objects":
-          elem.src = "src/assets/folders/3d.svg";
+          elem.src = "ui/assets/folders/3d.svg";
           break;
         default:
-          elem.src = "src/assets/folders/folder.svg";
+          elem.src = "ui/assets/folders/folder.svg";
           break;
       }
       break;
@@ -227,11 +227,11 @@ function generate_item_preview(
       break;
     default: // all other things
       elem = document.createElement("img");
-      elem.src = `src/assets/files/${item.extension.toLowerCase()}.svg`;
+      elem.src = `ui/assets/files/${item.extension.toLowerCase()}.svg`;
       break;
   }
   elem.onerror = function (): void {
-    // this.src = "src/assets/files/file.svg";
+    // this.src = "ui/assets/files/file.svg";
   };
   return elem;
 }
