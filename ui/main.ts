@@ -48,7 +48,8 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 });
 
 async function goto_folder(selected_folder_path: string) {
-  const data = await invoke("get_items", { selectedFolder: selected_folder_path });
+  let data = await invoke("get_items", { selectedFolder: selected_folder_path });
+  // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
   console.log(data);
   display_items(data);
 }
@@ -109,8 +110,12 @@ function display_items(data: Item[]): void {
       const item_container = document.createElement("button");
       const item_name = document.createElement("p");
       item_name.innerHTML = item.name;
+      item_name.className = 'name'
+      const item_size = document.createElement("p");
+      item_size.innerHTML = item.size_formatted;
+      item_size.className = 'size'
       item_container.onclick = function () {
-        select_item(item);
+        select_item(item, item_container);
       };
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
@@ -119,7 +124,7 @@ function display_items(data: Item[]): void {
           invoke("open_file_in_default_app", { path: item.full_path });
         }
       };
-      item_container.append(generate_item_preview(item), item_name);
+      item_container.append(generate_item_preview(item), item_name, item_size);
       grid.appendChild(item_container);
     }
     if (amount * (offset / amount + 1) < items.length) {
@@ -140,7 +145,7 @@ interface Item {
   accessed_formatted: string;
 }
 
-function select_item(item: Item): void {
+function select_item(item: Item, item_container: HTMLButtonElement): void {
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
 
@@ -168,7 +173,16 @@ function select_item(item: Item): void {
   const btn_delete = document.createElement("button");
   btn_delete.innerHTML = "Delete";
   btn_delete.onclick = function () {
-    invoke("send_file_to_trash", { path: item.full_path });
+    invoke("send_file_to_trash", { path: item.full_path })
+      .then(() => {
+        console.log("File deleted successfully");
+        // delete the item from file list
+        item_container.remove();
+      })
+      .catch((err: Error) => {
+        console.error(err);
+        alert("error deleting file");
+      });
   };
   // const rename_input = document.createElement("input");
   // rename_input.type = "text";
@@ -218,7 +232,17 @@ function generate_item_preview(
           elem.src = "ui/assets/folders/videos.svg";
           break;
         case "movies":
+        case "films":
           elem.src = "ui/assets/folders/movies.svg";
+          break;
+        case "users":
+          elem.src = "ui/assets/folders/users.svg";
+          break;
+        case "music":
+          elem.src = "ui/assets/folders/music.svg";
+          break;
+        case "audio":
+          elem.src = "ui/assets/folders/audio.svg";
           break;
         case "src":
           elem.src = "ui/assets/folders/src.svg";

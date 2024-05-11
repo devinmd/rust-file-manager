@@ -10,6 +10,9 @@
   --bg: #202020;
   --bg-1: #303030;
   --bg-2: #404040;
+  --bg: #202024;
+  --bg-1: #303035;
+  --bg-2: #404046;
   --text: #efefef;
   --text-1: #dfdfdf;
 }
@@ -249,6 +252,17 @@ div#content div#items button p {
   text-align: center;
 }
 
+div#content div#items button p.size {
+
+  color: var(--text-1);
+}
+
+
+div#content div#items button p.name {
+  color: var(--text);
+  
+}
+
 div#content div#selected-file {
   display: flex;
   flex-direction: column;
@@ -284,7 +298,7 @@ div#content div#selected-file div#actions button:hover {
 }
 
 div#content div#selected-file div#info {
-  padding: 16px;
+  padding: 16px 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;

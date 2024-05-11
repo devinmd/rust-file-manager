@@ -97,8 +97,11 @@ fn get_system_info() -> Result<SystemInfoStruct, String> {
 }
 
 #[tauri::command]
-fn send_file_to_trash(path: String) {
-    trash::delete(path).unwrap();
+fn send_file_to_trash(path: String) -> Result<(), String> {
+    match trash::delete(path) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(format!("Failed to delete file: {}", err)),
+    }
 }
 
 #[tauri::command]
@@ -171,7 +174,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             } else {
                 // is file
                 item_type = match extension.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng"
+                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng" | "jfif" 
                     | "tiff" | "ico" => String::from("image"), // heic is not supported
                     "mp4" | "mov" | "avi" | "mkv" | "webm" => String::from("video"),
                     "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
