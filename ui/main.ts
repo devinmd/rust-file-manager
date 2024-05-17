@@ -31,7 +31,7 @@ async function get_system_info() {
 }
 
 document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
-  // Your event listener code here
+  // open folder
   try {
     const selected_folder_path = await invoke("open_folder_dialog");
     console.log(selected_folder_path);
@@ -42,14 +42,14 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
 });
 
 document.getElementById("btn-home")?.addEventListener("click", async () => {
+  // home butotn
   document.querySelector("#home").setAttribute("style", "display: flex;");
   document.querySelector("#content").setAttribute("style", "display: none;");
-  // home button
 });
 
 async function goto_folder(selected_folder_path: string) {
   let data = await invoke("get_items", { selectedFolder: selected_folder_path });
-  // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
+  data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
   console.log(data);
   display_items(data);
 }
@@ -58,16 +58,19 @@ const page_size = 50;
 const default_theme = "dark";
 
 function display_items(data: Item[]): void {
-  // hide home, show files
+  // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: flex;");
-  // remove dotfiles
+
+  // remove dotfiles from file list
   data = data.filter((obj) => !obj.name.startsWith("."));
+
   // clear grid
   const grid = document.querySelector("#items");
   grid.innerHTML = "";
-  // update folder name
-  const vec = data[0].container_path_vec;
+
+  // make path buttons
+  const vec = data[0].path_vec;
   vec[0] = "C:/";
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
@@ -87,6 +90,8 @@ function display_items(data: Item[]): void {
     }
     document.querySelector("#path").append(caret, btn);
   }
+
+  // show file count
   document.querySelector("#current-folder-info").innerHTML = data.length + " items";
 
   const load_more = document.createElement("button");
@@ -110,18 +115,18 @@ function display_items(data: Item[]): void {
       const item_container = document.createElement("button");
       const item_name = document.createElement("p");
       item_name.innerHTML = item.name;
-      item_name.className = 'name'
+      item_name.className = "name";
       const item_size = document.createElement("p");
       item_size.innerHTML = item.size_formatted;
-      item_size.className = 'size'
+      item_size.className = "size";
       item_container.onclick = function () {
         select_item(item, item_container);
       };
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
-          goto_folder(item.full_path);
+          goto_folder(item.path_str);
         } else {
-          invoke("open_file_in_default_app", { path: item.full_path });
+          invoke("open_file_in_default_app", { path: item.path_str });
         }
       };
       item_container.append(generate_item_preview(item), item_name, item_size);
@@ -135,13 +140,13 @@ function display_items(data: Item[]): void {
 
 interface Item {
   item_type: string;
-  full_path: string;
+  path_str: string;
   name: string;
   size_formatted: string;
   created_formatted: string;
   extension: string;
   modified_formatted: string;
-  container_path_vec: string[];
+  path_vec: string[];
   accessed_formatted: string;
 }
 
@@ -173,7 +178,7 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
   const btn_delete = document.createElement("button");
   btn_delete.innerHTML = "Delete";
   btn_delete.onclick = function () {
-    invoke("send_file_to_trash", { path: item.full_path })
+    invoke("send_file_to_trash", { path: item.path_str })
       .then(() => {
         console.log("File deleted successfully");
         // delete the item from file list
@@ -190,21 +195,23 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
   // rename_input.value = item.name;
   const btn_rename = document.createElement("button");
   btn_rename.innerHTML = "Rename";
+  const btn_favorite = document.createElement("button");
+  btn_favorite.innerHTML = "Favorite";
   // btn_rename.onclick = function () {
   // const new_name = rename_input.value;
-  // item.container_path_vec.push(new_name);
-  // console.log(item.container_path_vec.join("/"));
-  // invoke("rename_item", { path: item.full_path, new: item.full_path + "test" });
+  // item.path_vec.push(new_name);
+  // console.log(item.path_vec.join("/"));
+  // invoke("rename_item", { path: item.path_str, new: item.path_str + "test" });
   // };
   const btn_open = document.createElement("button");
   btn_open.innerHTML = "Open";
   btn_open.onclick = function () {
-    invoke("open_file_in_default_app", { path: item.full_path });
+    invoke("open_file_in_default_app", { path: item.path_str });
   };
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(btn_open, btn_rename, btn_delete);
+  actions.append(btn_open, btn_rename, btn_delete,btn_favorite);
 
   sidebar.append(generate_item_preview(item, true), info, actions);
 }
@@ -264,16 +271,16 @@ function generate_item_preview(
       break;
     case "image":
       elem = document.createElement("img") as HTMLImageElement;
-      elem.src = convertFileSrc(item.full_path);
+      elem.src = convertFileSrc(item.path_str);
       break;
     case "video":
       elem = document.createElement("video");
       elem.controls = video_controls;
-      elem.src = convertFileSrc(item.full_path);
+      elem.src = convertFileSrc(item.path_str);
       break;
     case "audio":
       elem = document.createElement("audio");
-      elem.src = convertFileSrc(item.full_path);
+      elem.src = convertFileSrc(item.path_str);
       break;
     default: // all other things
       elem = document.createElement("img");

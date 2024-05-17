@@ -4,17 +4,10 @@ File manager made with Rust & Tauri
 
 ## Todo
 
-- walk folder mode
-  - walks all subfolders and displays those files too as if they were in the main folder
-- column view
-- list view (file name, preview, details, etc. in a table)
-- change grid size
-- custom themes
+- media view mode
+  - walks all subfolders and displays all images & videos 
 - store user data (themes, etc.)
 - metadata storage
-- sort by
-- rename file
-- rename folders
 - tagging
 - right click context menu with actions
 - add description and url
@@ -32,31 +25,49 @@ File manager made with Rust & Tauri
 - tall images mess up grid layout
 - show or hide hidden files (dotfiles)
 - option to lock file thumbnails to square
-- 3d model preview
 - final color palettes
 - fetch only video thumbnails to speed up frontend
 - instead of using full image on preview & icons, store a low res thumbnail version
-- right sidebar with favorites
+- left sidebar with favorites
 - home menu
   - favorited folders & files, clock, notes, suggested files/frequently used
-- test on mac
-- loaders
-- create files & folders
-- unzip
-- zip files
-- automaically keep loading files as user scrolls
 - passively index user's drive
-- search
-- back & forward buttons
-- refresh button
-- re-open app to same folder
-- back button
 - formatted file type
 - app icon
-- make file dates local, not gmt
-- support for external drives
+- make file dates local time, not gmt
+- support for external drives & servers
+
+
+IN APP FEATURES
+- search
+- refresh button
+- re-open app to same folder
+- back & forward buttons
+- sort by
+
+UI
+- column view
+- change grid size
+- list view (table)
+- custom themes
+
+
+QOL
+- loaders
+- automaically keep loading files as user scrolls
+
+
+
+BACKBURNER
+- create files & folders
+- rename folders & files
+- find similar images with phash function
+- find duplicate files
 - moving files
   - cut, copy, paste files
   - selecting multiple files
     - ctrl, shift + click
     - dragging to select
+- 3d model preview
+- zip files
+- unzip files

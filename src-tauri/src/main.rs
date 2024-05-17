@@ -125,12 +125,28 @@ struct FileInfoStruct {
     created_formatted: String,
     modified_formatted: String,
     accessed_formatted: String,
-    container_path_vec: Vec<String>,
-    full_path: String,
+    path_vec: Vec<String>,
+    path_str: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
     size_formatted: Option<String>, // New field for formatted size
     item_type: String,       // image, video, text, 3d model, audio, folder
     extension: String,       // png, avif, mp3, wav, etc.
+}
+
+#[derive(Serialize)]
+
+struct FolderInfoStruct {
+    name: String,
+    created: Option<u64>,
+    modified: Option<u64>,
+    accessed: Option<u64>,
+    created_formatted: String,
+    modified_formatted: String,
+    accessed_formatted: String,
+    path_vec: Vec<String>,
+    path_str: String,
+    size_bytes: Option<u64>,
+    size_formatted: Option<String>,
 }
 
 #[tauri::command]
@@ -153,6 +169,13 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                     ext.to_string_lossy().to_string()
                 });
             let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
+            // construct full path
+            let path_str: String = format!(
+                "{}{}{}",
+                selected_folder.replace("\\", "/"),
+                "/",
+                file_name.clone().into_string().unwrap()
+            );
 
             let created: Option<u64> = metadata
                 .created()
@@ -169,33 +192,33 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
 
             let item_type: String;
 
+            let mut size_formatted: Option<String> = None;
+            let mut size_bytes: Option<u64> = None;
+
             if metadata.is_dir() {
+                // is folder/
                 item_type = "folder".to_string();
+                // let size_info = get_directory_size_info(&path_str);
+                // size_bytes = size_info.1;
+                // size_formatted = size_info.0;
             } else {
                 // is file
                 item_type = match extension.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng" | "jfif" 
-                    | "tiff" | "ico" => String::from("image"), // heic is not supported
-                    "mp4" | "mov" | "avi" | "mkv" | "webm" => String::from("video"),
+                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng"
+                    | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
+                    "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
                     "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
-                    "3mf" | "stl" | "obj" => String::from("3d"), // 3d model preview is not implemented
+                    "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
                     _ => String::from("file"),
                 };
+                size_bytes = Some(metadata.len());
+                size_formatted = size_bytes.map(|size| format_size(size));
             }
 
             let name: String = file_name.to_string_lossy().to_string();
-            let size_bytes: Option<u64> = if metadata.is_file() {
-                Some(metadata.len())
-            } else {
-                None
-            };
-            let size_formatted: Option<String> = if let Some(size_bytes) = size_bytes {
-                Some(format_size(size_bytes))
-            } else {
-                None
-            };
+           
 
-            let container_path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
+            let path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
                 .components()
                 .enumerate()
                 .filter_map(|(index, c)| {
@@ -208,18 +231,10 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 .collect();
 
             // get path to item's container
-            // let container_path_vec: Vec<String> = full_path_vec.clone();
+            // let path_vec: Vec<String> = path_str_vec.clone();
 
             // full path vec is the same as container path vec BUT has the filename at the end
-            // full_path_vec.push(file_name.clone().into_string().unwrap());
-
-            // construct full path
-            let full_path: String = format!(
-                "{}{}{}",
-                selected_folder.replace("\\", "/"),
-                "/",
-                file_name.into_string().unwrap()
-            );
+            // path_str_vec.push(file_name.clone().into_string().unwrap());
 
             info.push(FileInfoStruct {
                 name,
@@ -229,8 +244,8 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 created_formatted: format_timestamp(created),
                 modified_formatted: format_timestamp(modified),
                 accessed_formatted: format_timestamp(accessed),
-                container_path_vec,
-                full_path,
+                path_vec,
+                path_str,
                 size_bytes,
                 size_formatted,
                 item_type,
@@ -241,18 +256,92 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
     Ok(info)
 }
 
+
+
+extern crate fs_extra;
+
+use fs_extra::dir::get_size;
+
+fn get_directory_size_info(path_str: &str) -> (Option<String>, Option<u64>) {
+    let mut size_formatted: Option<String> = None;
+    let mut size_bytes: Option<u64> = None;
+
+    match get_size(path_str) {
+        Ok(size) => {
+            size_bytes = Some(size);
+            size_formatted = Some(format_size(size));
+        }
+        Err(e) => {
+            eprintln!("Failed to get directory size: {}", e);
+        }
+    }
+
+    (size_formatted, size_bytes)
+}
+
 #[tauri::command]
 async fn open_folder_dialog() -> Result<String, String> {
-    // Note the async fn
-    use tauri::api::dialog::blocking::FileDialogBuilder; // Note the updated import
-    let dialog_result: Option<std::path::PathBuf> = FileDialogBuilder::new().pick_folder();
+    use std::path::PathBuf;
+    use tauri::api::dialog::blocking::FileDialogBuilder;
 
-    // Check if the user selected a folder or cancelled the dialog
+    // Show the folder dialog
+    let dialog_result: Option<PathBuf> = FileDialogBuilder::new().pick_folder();
+
     match dialog_result {
-        Some(selected_folder) => Ok(selected_folder
-            .to_string_lossy()
-            .to_string()
-            .replace("\\", "/")),
+        Some(selected_folder) => {
+
+            // Convert the selected folder path to a string
+            let path_str = selected_folder
+                .to_string_lossy()
+                .to_string()
+                .replace("\\", "/");
+
+            // let mut info: Vec<FolderInfoStruct> = Vec::new();
+
+            /*let size_bytes = fs_extra::dir::get_size(path_str.clone()).unwrap();
+            let size_formatted: Option<String> = if let Some(size_bytes) = size_bytes {
+                Some(format_size(size_bytes))
+            } else {
+                None
+            };*/
+
+            // let mut size_formatted: String = String::new();
+            // let mut size_bytes: u64 = 0;
+
+            // match fs_extra::dir::get_size(&path_str) {
+            //     Ok(size_bytes) => {
+            //         size_formatted = format_size(size_bytes);
+            //     }
+            //     Err(e) => {
+            //         eprintln!("Failed to get directory size: {}", e);
+            //     }
+            // }
+
+            // println!("{}",size_formatted);
+
+            // You can add more actions here
+            // For example: Listing files in the folder, checking if certain files exist, etc.
+            // Ensure that these actions are asynchronous if needed
+
+            // Return the folder path
+
+            // info.push(FolderInfoStruct {
+            //     name,
+            //     created,
+            //     modified,
+            //     accessed,
+            //     created_formatted: format_timestamp(created),
+            //     modified_formatted: format_timestamp(modified),
+            //     accessed_formatted: format_timestamp(accessed),
+            //     path_vec,
+            //     path_str,
+            //     size_bytes,
+            //     size_formatted,
+            //     item_type,
+            //     extension,
+            // });
+            Ok(path_str)
+        }
         None => {
             // Handle the case when the user cancels the dialog
             Err(String::from("Dialog was cancelled"))
