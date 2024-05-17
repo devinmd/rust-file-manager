@@ -54,7 +54,7 @@ async function goto_folder(selected_folder_path: string) {
   display_items(data);
 }
 
-const page_size = 50;
+const page_size = 64;
 const default_theme = "dark";
 
 function display_items(data: Item[]): void {
@@ -84,7 +84,7 @@ function display_items(data: Item[]): void {
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
     caret.src = "ui/assets/caret.svg";
-    if (i == 1) {
+    if (i == 0) {
       document.querySelector("#path").append(btn);
       continue;
     }
@@ -129,9 +129,9 @@ function display_items(data: Item[]): void {
           invoke("open_file_in_default_app", { path: item.path_str });
         }
       };
-      let thumbnail = document.createElement('div')
-      thumbnail.className = 'thumbnail'
-      thumbnail.append(generate_item_preview(item))
+      let thumbnail = document.createElement("div");
+      thumbnail.className = "thumbnail";
+      thumbnail.append(generate_item_preview(item));
       item_container.append(thumbnail, item_name, item_size);
       grid.appendChild(item_container);
     }
@@ -151,6 +151,8 @@ interface Item {
   modified_formatted: string;
   path_vec: string[];
   accessed_formatted: string;
+  width: number;
+  height: number;
 }
 
 function select_item(item: Item, item_container: HTMLButtonElement): void {
@@ -169,13 +171,15 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
   type.innerHTML = `Type<span>${item.item_type}</span>`;
   const size = document.createElement("p");
   size.innerHTML = `Size<span>${item.size_formatted}</span>`;
+  const dimensions = document.createElement("p");
+  dimensions.innerHTML = `Dimensions<span>${item.width} x ${item.height}</span>`;
   const created = document.createElement("p");
   created.innerHTML = `Created<span>${item.created_formatted}</span>`;
   const accessed = document.createElement("p");
   accessed.innerHTML = `Accessed<span>${item.accessed_formatted}</span>`;
   const modified = document.createElement("p");
   modified.innerHTML = `Modified<span>${item.modified_formatted}</span>`;
-  info.append(item_name, type, size, created, accessed, modified);
+  info.append(item_name, type, size, dimensions, created, accessed, modified);
 
   // buttons
   const btn_delete = document.createElement("button");

@@ -136,6 +136,8 @@ struct FileInfoStruct {
     size_formatted: Option<String>, // New field for formatted size
     item_type: String,       // image, video, text, 3d model, audio, folder
     extension: String,       // png, avif, mp3, wav, etc.
+    height: usize,           // dimensions of file if image
+    width: usize,
 }
 
 #[derive(Serialize)]
@@ -200,6 +202,10 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             let mut size_formatted: Option<String> = None;
             let mut size_bytes: Option<u64> = None;
 
+            // Initialize height and width
+            let mut height: usize = 0;
+            let mut width: usize = 0;
+
             if metadata.is_dir() {
                 // is folder/
                 item_type = "folder".to_string();
@@ -218,6 +224,17 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 };
                 size_bytes = Some(metadata.len());
                 size_formatted = size_bytes.map(|size| format_size(size));
+
+                if item_type == "image" {
+                    match imagesize::size(path_str.clone()) {
+                        Ok(size) => {
+                            println!("Image dimensions: {}x{}", size.width, size.height);
+                            width = size.width;
+                            height = size.height;
+                        }
+                        Err(why) => println!("Error getting dimensions: {:?}", why),
+                    }
+                }
             }
 
             let name: String = file_name.to_string_lossy().to_string();
@@ -254,6 +271,8 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 size_formatted,
                 item_type,
                 extension,
+                height,
+                width,
             });
         }
     }
