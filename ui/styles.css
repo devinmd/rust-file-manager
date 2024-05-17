@@ -228,6 +228,7 @@ div#content div#items {
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   height: calc(100vh - 128px);
   row-gap: 16px;
+  grid-auto-rows: min-content;
   overflow-y: auto;
 }
 
@@ -240,10 +241,11 @@ div#content div#items div.thumbnail {
   align-items: center;
   overflow: hidden;
 }
+
 div#content div#items div.thumbnail img,
 div#content div#items div.thumbnail video {
-  width: auto;
-  height: auto;
+  /* width: auto; */
+  /* height: auto; */
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;

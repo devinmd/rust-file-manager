@@ -4,7 +4,7 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 fn main() {
-    let app = tauri::Builder::default()
+    let _app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
             open_file_in_default_app,
@@ -22,14 +22,16 @@ fn main() {
 use std::path::Path;
 use std::path::PathBuf;
 
-use sysinfo::Disk;
 use trash;
 
 use serde::Serialize;
 
 #[tauri::command]
 fn open_file_in_default_app(path: String) {
-    open::that(path);
+    match open::that(path) {
+        Ok(_) => println!("File opened successfully"),
+        Err(e) => eprintln!("Failed to open file: {}", e),
+    }
 }
 
 use sysinfo::{Disks, System};
@@ -107,7 +109,10 @@ fn send_file_to_trash(path: String) -> Result<(), String> {
 #[tauri::command]
 fn rename_item(path: String, new: String) {
     print!("{}", new);
-    fs::rename(path, new);
+    match fs::rename(&path, &new) {
+        Ok(_) => println!("Item renamed successfully"),
+        Err(e) => eprintln!("Failed to rename item: {}", e),
+    }
 }
 
 use std::fs;
@@ -169,7 +174,7 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                     ext.to_string_lossy().to_string()
                 });
             let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
-            // construct full path
+                                                                    // construct full path
             let path_str: String = format!(
                 "{}{}{}",
                 selected_folder.replace("\\", "/"),
@@ -216,7 +221,6 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             }
 
             let name: String = file_name.to_string_lossy().to_string();
-           
 
             let path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
                 .components()
@@ -256,8 +260,6 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
     Ok(info)
 }
 
-
-
 extern crate fs_extra;
 
 use fs_extra::dir::get_size;
@@ -289,7 +291,6 @@ async fn open_folder_dialog() -> Result<String, String> {
 
     match dialog_result {
         Some(selected_folder) => {
-
             // Convert the selected folder path to a string
             let path_str = selected_folder
                 .to_string_lossy()
@@ -351,7 +352,7 @@ async fn open_folder_dialog() -> Result<String, String> {
 
 extern crate chrono;
 
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 fn format_timestamp(ms_since_epoch: Option<u64>) -> String {
     match ms_since_epoch {
