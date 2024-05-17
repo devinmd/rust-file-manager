@@ -51,17 +51,15 @@ body {
 img,
 video {
   max-width: 100%;
-  border-radius: 2%;
+  border-radius: 3%;
   width: 100%;
-  
-  image-rendering: optimizeSpeed;             
-  image-rendering: -moz-crisp-edges;          
-  image-rendering: -o-crisp-edges;            
-  image-rendering: -webkit-optimize-contrast; 
-  image-rendering: pixelated;                 
-  image-rendering: optimize-contrast;         
-  -ms-interpolation-mode: nearest-neighbor;   
-
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+  image-rendering: optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
 }
 
 p {
@@ -132,7 +130,7 @@ div#home div#drives div {
   border-radius: 8px;
 }
 
-div#home div#drives div p{
+div#home div#drives div p {
   font-size: 14px;
 }
 
@@ -233,11 +231,22 @@ div#content div#items {
   overflow-y: auto;
 }
 
-div#content div#items img {
-  object-fit: cover;
-  object-fit: contain;
-
+div#content div#items div.thumbnail {
+  position: relative;
+  width: 100%;
   aspect-ratio: 1 / 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+div#content div#items div.thumbnail img,
+div#content div#items div.thumbnail video {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 div#content div#items button#btn-load-more {
@@ -271,14 +280,11 @@ div#content div#items button p {
 }
 
 div#content div#items button p.size {
-
   color: var(--text-1);
 }
 
-
 div#content div#items button p.name {
   color: var(--text);
-  
 }
 
 div#content div#selected-file {

@@ -50,6 +50,7 @@ UI
 - change grid size
 - list view (table)
 - custom themes
+- proper audio player
 
 
 QOL

@@ -129,7 +129,10 @@ function display_items(data: Item[]): void {
           invoke("open_file_in_default_app", { path: item.path_str });
         }
       };
-      item_container.append(generate_item_preview(item), item_name, item_size);
+      let thumbnail = document.createElement('div')
+      thumbnail.className = 'thumbnail'
+      thumbnail.append(generate_item_preview(item))
+      item_container.append(thumbnail, item_name, item_size);
       grid.appendChild(item_container);
     }
     if (amount * (offset / amount + 1) < items.length) {
@@ -211,7 +214,7 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(btn_open, btn_rename, btn_delete,btn_favorite);
+  actions.append(btn_open, btn_rename, btn_delete, btn_favorite);
 
   sidebar.append(generate_item_preview(item, true), info, actions);
 }
@@ -280,6 +283,7 @@ function generate_item_preview(
       break;
     case "audio":
       elem = document.createElement("audio");
+      elem.controls = true;
       elem.src = convertFileSrc(item.path_str);
       break;
     default: // all other things
