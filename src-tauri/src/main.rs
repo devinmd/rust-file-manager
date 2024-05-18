@@ -204,19 +204,45 @@ async fn get_last_folder() -> Result<String, String> {
     }
 }
 
+use walkdir::WalkDir;
+
+fn read_directory_to_vec(selected_folder: &Path, walk: bool) -> Result<Vec<PathBuf>, String> {
+    if walk {
+        // Use WalkDir to recursively collect all files and exclude directories
+        let entries: Vec<PathBuf> = WalkDir::new(selected_folder)
+            .into_iter()
+            .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
+            .map(|entry| entry.into_path()) // Convert DirEntry to PathBuf
+            .filter(|path| path.is_file()) // Only keep files
+            .collect();
+        Ok(entries)
+    } else {
+        // Use fs::read_dir for a non-recursive directory listing
+        println!("{}", selected_folder.display());
+        let entries: fs::ReadDir = match fs::read_dir(selected_folder) {
+            Ok(entries) => entries,
+            Err(_) => return Err(String::from("Failed to read directory")),
+        };
+
+        let vec: Vec<PathBuf> = entries
+            .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
+            .map(|entry| entry.path()) // Convert DirEntry to PathBuf
+            .collect();
+
+        Ok(vec)
+    }
+}
+
 #[tauri::command]
 async fn get_items(
     selected_folder: String,
     sort: String,
     ascending: bool,
+    walk: bool,
 ) -> Result<Vec<FileInfoStruct>, String> {
-    // Fetch all entries (files and folders) in the selected directory
     use std::fs;
-    let entries: fs::ReadDir = match fs::read_dir(&selected_folder) {
-        Ok(entries) => entries,
-        Err(_) => return Err(String::from("Failed to read directory")),
-    };
 
+    // add the folder to database
     match get_database() {
         Ok(conn) => {
             // Write last folder to the database
@@ -241,112 +267,116 @@ async fn get_items(
         }
     }
 
-    // Collect paths of files and folders into a vector of strings
+    // Get all the files and get info
     let mut info: Vec<FileInfoStruct> = Vec::new();
-    for entry in entries {
-        if let Ok(entry) = entry {
-            let file_name: std::ffi::OsString = entry.file_name();
-            let extension: String = Path::new(&file_name)
-                .extension()
-                .map_or(String::new(), |ext: &std::ffi::OsStr| {
-                    ext.to_string_lossy().to_string()
-                });
-            let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
-                                                                    // construct full path
-            let path_str: String = format!(
-                "{}{}{}",
-                selected_folder.replace("\\", "/"),
-                "/",
-                file_name.clone().into_string().unwrap()
-            );
+    match read_directory_to_vec(Path::new(&selected_folder), walk) {
+        Ok(entries) => {
+            for entry in entries {
+                println!("{:?}", entry);
+                // if let Ok(entry) = entry {
+                let name = entry.file_name().unwrap().to_string_lossy().into_owned();
+                //
 
-            let created: Option<u64> = metadata
-                .created()
-                .ok()
-                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-            let modified: Option<u64> = metadata
-                .modified()
-                .ok()
-                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-            let accessed: Option<u64> = metadata
-                .accessed()
-                .ok()
-                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+                let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
 
-            let item_type: String;
+                let path_str = entry
+                    .to_str()
+                    .unwrap_or("Invalid path")
+                    .to_string()
+                    .replace("\\", "/"); // should implement proper error handling later
 
-            let mut size_formatted: Option<String> = None;
-            let mut size_bytes: Option<u64> = None;
+                let created: Option<u64> = metadata
+                    .created()
+                    .ok()
+                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+                let modified: Option<u64> = metadata
+                    .modified()
+                    .ok()
+                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+                let accessed: Option<u64> = metadata
+                    .accessed()
+                    .ok()
+                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
 
-            // Initialize height and width
-            let mut height: usize = 0;
-            let mut width: usize = 0;
+                let item_type: String;
 
-            if metadata.is_dir() {
-                // is folder/
-                item_type = "folder".to_string();
-            } else {
-                // is file
-                item_type = match extension.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng"
-                    | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
-                    "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
-                    "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
-                    "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
-                    _ => String::from("file"),
-                };
-                size_bytes = Some(metadata.len());
-                size_formatted = size_bytes.map(|size| format_size(size));
+                let mut size_formatted: Option<String> = None;
+                let mut size_bytes: Option<u64> = None;
 
-                if item_type == "image" {
-                    match imagesize::size(path_str.clone()) {
-                        Ok(size) => {
-                            width = size.width;
-                            height = size.height;
+                // Initialize height and width
+                let mut height: usize = 0;
+                let mut width: usize = 0;
+
+                // Get the extension if it exists, convert to a String, and make it lowercase
+                let extension: Option<String> = entry
+                    .extension()
+                    .and_then(|ext| ext.to_str()) // Convert OsStr to &str
+                    .map(|ext| ext.to_lowercase()); // Convert &str to lowercase String
+
+                // Provide a default value if the extension is None
+                let extension = extension.unwrap_or_default();
+
+                if metadata.is_dir() {
+                    // is folder/
+                    item_type = "folder".to_string();
+                } else {
+                    // is file
+                    item_type = match extension.to_lowercase().as_str() {
+                        "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg"
+                        | "apng" | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
+                        "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
+                        "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
+                        "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
+                        _ => String::from("file"),
+                    };
+                    size_bytes = Some(metadata.len());
+                    size_formatted = size_bytes.map(|size| format_size(size));
+
+                    if item_type == "image" {
+                        match imagesize::size(path_str.clone()) {
+                            Ok(size) => {
+                                width = size.width;
+                                height = size.height;
+                            }
+                            Err(why) => println!("Error getting dimensions: {:?}", why),
                         }
-                        Err(why) => println!("Error getting dimensions: {:?}", why),
                     }
                 }
+
+                // get path to item's container as a vector
+                let path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
+                    .components()
+                    .enumerate()
+                    .filter_map(|(index, c)| {
+                        if index != 1 {
+                            Some(c.as_os_str().to_string_lossy().to_string())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                info.push(FileInfoStruct {
+                    name,
+                    created,
+                    modified,
+                    accessed,
+                    created_formatted: format_timestamp(created),
+                    modified_formatted: format_timestamp(modified),
+                    accessed_formatted: format_timestamp(accessed),
+                    path_vec,
+                    path_str,
+                    size_bytes,
+                    size_formatted,
+                    item_type,
+                    extension,
+                    height,
+                    width,
+                });
+                // }
             }
-
-            let name: String = file_name.to_string_lossy().to_string();
-
-            let path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
-                .components()
-                .enumerate()
-                .filter_map(|(index, c)| {
-                    if index != 1 {
-                        Some(c.as_os_str().to_string_lossy().to_string())
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-
-            // get path to item's container
-            // let path_vec: Vec<String> = path_str_vec.clone();
-
-            // full path vec is the same as container path vec BUT has the filename at the end
-            // path_str_vec.push(file_name.clone().into_string().unwrap());
-
-            info.push(FileInfoStruct {
-                name,
-                created,
-                modified,
-                accessed,
-                created_formatted: format_timestamp(created),
-                modified_formatted: format_timestamp(modified),
-                accessed_formatted: format_timestamp(accessed),
-                path_vec,
-                path_str,
-                size_bytes,
-                size_formatted,
-                item_type,
-                extension,
-                height,
-                width,
-            });
         }
+        Err(err) => println!("Error: {}", err),
     }
 
     sort_items(&mut info, &sort, ascending);

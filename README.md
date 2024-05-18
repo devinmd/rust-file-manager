@@ -25,6 +25,13 @@ File manager made with Rust & Tauri
 - app icon
 
 
+TODO
+- should send folder information separate because if it's empty there is nowhere to grab it from
+
+WALK MODE
+- path vec is for the whole directory, so it won't be correct for all
+- somehow should add pagination in backend because some might have tons of files
+
 IN APP FEATURES
 - search
 - refresh button

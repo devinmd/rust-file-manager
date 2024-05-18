@@ -3030,6 +3030,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "trash",
+ "walkdir",
 ]
 
 [[package]]

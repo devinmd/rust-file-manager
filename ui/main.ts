@@ -60,6 +60,13 @@ document.getElementById("sort")?.addEventListener("input", async () => {
   } catch {}
 });
 
+document.getElementById("checkbox-walk")?.addEventListener("input", async () => {
+  // user changed sort
+  try {
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
 document.getElementById("btn-home")?.addEventListener("click", async () => {
   // home butotn
   document.querySelector("#home").setAttribute("style", "display: flex;");
@@ -68,11 +75,13 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 
 async function goto_folder(selected_folder_path: string) {
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
+  const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
   console.log(sort);
   let data = await invoke("get_items", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
     ascending: /true/i.test(sort[1]),
+    walk: walk,
   });
 
   (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
@@ -211,6 +220,10 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
   const size = document.createElement("p");
   size.innerHTML = `Size<span>${item.size_formatted}</span>`;
   item.size_formatted ? toAppend.push(size) : null;
+
+  const location = document.createElement("p");
+  location.innerHTML = `Location<span>${item.path_str}</span>`;
+ toAppend.push(location)
 
   const dimensions = document.createElement("p");
   dimensions.innerHTML = `Dimensions<span>${item.width} x ${item.height}</span>`;
