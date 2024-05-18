@@ -9,10 +9,21 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("loaded");
   change_theme(default_theme);
   get_system_info();
+
+  // open last folder (if exists)
+  goto_last_folder();
 });
+
+async function goto_last_folder() {
+  const data = await invoke("get_last_folder");
+  console.log("found last folder from database");
+  console.log(data);
+  goto_folder(data);
+}
 
 async function get_system_info() {
   const data = await invoke("get_system_info");
+  console.log("got system info");
   console.log(data);
   let disks = data.disks;
   document.querySelector("#greeting").innerHTML = data.name;
@@ -34,6 +45,7 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   // open folder
   try {
     const selected_folder_path = await invoke("open_folder_dialog");
+    console.log("selected folder");
     console.log(selected_folder_path);
     goto_folder(selected_folder_path);
   } catch (error) {
@@ -50,6 +62,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 async function goto_folder(selected_folder_path: string) {
   let data = await invoke("get_items", { selectedFolder: selected_folder_path });
   data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
+  console.log("got items from selected folder");
   console.log(data);
   display_items(data);
 }
@@ -139,6 +152,7 @@ function display_items(data: Item[]): void {
       grid.appendChild(load_more);
     }
   }
+  console.log("displayed files");
 }
 
 interface Item {
@@ -159,27 +173,43 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
 
+  let toAppend = [];
+
   // file name
   const item_name = document.createElement("p");
   item_name.id = "item-name";
   item_name.innerHTML = item.name;
+  toAppend.push(item_name);
 
   // text
   const info = document.createElement("div");
   info.id = "info";
+
   const type = document.createElement("p");
   type.innerHTML = `Type<span>${item.item_type}</span>`;
+  toAppend.push(type);
+
   const size = document.createElement("p");
   size.innerHTML = `Size<span>${item.size_formatted}</span>`;
+  item.size_formatted ? toAppend.push(size) : null;
+
   const dimensions = document.createElement("p");
   dimensions.innerHTML = `Dimensions<span>${item.width} x ${item.height}</span>`;
+  item.width ? toAppend.push(dimensions) : null;
+
   const created = document.createElement("p");
   created.innerHTML = `Created<span>${item.created_formatted}</span>`;
+  toAppend.push(created);
+
   const accessed = document.createElement("p");
   accessed.innerHTML = `Accessed<span>${item.accessed_formatted}</span>`;
+  toAppend.push(accessed);
+
   const modified = document.createElement("p");
   modified.innerHTML = `Modified<span>${item.modified_formatted}</span>`;
-  info.append(item_name, type, size, dimensions, created, accessed, modified);
+  toAppend.push(modified);
+
+  info.append(...toAppend);
 
   // buttons
   const btn_delete = document.createElement("button");

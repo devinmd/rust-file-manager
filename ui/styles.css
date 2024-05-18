@@ -3,18 +3,17 @@
   --bg-1: #efefef;
   --bg-2: #dfdfdf;
   --text: #202020;
-  --text-1: #505050;
+  --text-1: #303030;
+  --text-2: #404040;
 }
 
 :root[theme="dark"] {
-  --bg: #202020;
-  --bg-1: #303030;
-  --bg-2: #404040;
   --bg: #202024;
   --bg-1: #303035;
   --bg-2: #404046;
   --text: #efefef;
   --text-1: #dfdfdf;
+  --text-2: #cfcfcf;
 }
 
 div#home {
@@ -30,7 +29,7 @@ div#home div#drives {
 
 div#home div#drives div {
   background-color: var(--bg-1);
-  padding: 16px;
+  padding: 16px 16px;
   border-radius: 8px;
 }
 
@@ -182,7 +181,7 @@ div#content div#items button p {
 }
 
 div#content div#items button p.size {
-  color: var(--text-1);
+  color: var(--text-2);
 }
 
 div#content div#items button p.name {
@@ -227,7 +226,7 @@ div#content div#selected-file div#actions button:hover {
 }
 
 div#content div#selected-file div#info {
-  padding: 16px 8px;
+  padding: 16px 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -242,9 +241,10 @@ div#content div#selected-file div#info p#item-name {
 
 div#content div#selected-file div#info p {
   font-size: 14px;
-  color: var(--text-1);
+  color: var(--text-2);
 }
 
 div#content div#selected-file div#info p span {
   float: right;
+  color: var(--text-1);
 }

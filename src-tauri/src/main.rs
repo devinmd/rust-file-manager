@@ -3,13 +3,24 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+extern crate rusqlite;
+use rusqlite::{params, Connection, Result};
+use serde::Serialize;
+use std::path::Path;
+use std::path::PathBuf;
+use sysinfo::{Disks, System};
+use trash;
+
 fn main() {
+    prepare_db();
+
     let _app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
             open_file_in_default_app,
             send_file_to_trash,
             get_items,
+            get_last_folder,
             rename_item,
             get_system_info
         ])
@@ -17,14 +28,22 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+fn prepare_db() -> Result<()> {
+    // Connect to the database. This will create the database file if it doesn't exist.
+    let conn = Connection::open("appdata.db")?;
+
+    // Create a table in appdata.db
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS userdata (
+            last_folder TEXT
+        );",
+        [],
+    )?;
+    Ok(())
+}
+
 // use std::ffi::OsString;
 // use std::os::windows::fs::MetadataExt;
-use std::path::Path;
-use std::path::PathBuf;
-
-use trash;
-
-use serde::Serialize;
 
 #[tauri::command]
 fn open_file_in_default_app(path: String) {
@@ -33,8 +52,6 @@ fn open_file_in_default_app(path: String) {
         Err(e) => eprintln!("Failed to open file: {}", e),
     }
 }
-
-use sysinfo::{Disks, System};
 
 #[derive(Serialize)]
 struct DiskInfo {
@@ -156,6 +173,51 @@ struct FolderInfoStruct {
     size_formatted: Option<String>,
 }
 
+fn get_database() -> Result<Connection, rusqlite::Error> {
+    // Connect to the database. This will create the database file if it doesn't exist.
+    let conn = Connection::open("appdata.db")?;
+    Ok(conn)
+}
+
+#[tauri::command]
+async fn get_last_folder() -> Result<String, String> {
+    match get_database() {
+        Ok(conn) => {
+            // Prepare an SQL query to retrieve the last folder
+            let mut stmt = match conn.prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1") {
+                Ok(stmt) => stmt,
+                Err(err) => {
+                    eprintln!("Error preparing SQL query: {}", err);
+                    return Err(format!("Error preparing SQL query: {}", err));
+                }
+            };
+
+            // Execute the query and fetch the result
+            let mut rows = match stmt.query([]) {
+                Ok(rows) => rows,
+                Err(err) => {
+                    eprintln!("Error querying the database: {}", err);
+                    return Err(format!("Error querying the database: {}", err));
+                }
+            };
+
+            // Fetch the result and build the response
+            if let Some(row) = rows.next().unwrap_or_else(|_| None) {
+                let last_folder: String = row.get(0).unwrap_or_default();
+                println!("{}", last_folder);
+                Ok(last_folder)
+            } else {
+                Err("No last folder found in the database".into())
+            }
+        }
+        Err(err) => {
+            // Handle the error
+            eprintln!("Error opening database: {}", err);
+            Err(format!("Error opening database: {}", err))
+        }
+    }
+}
+
 #[tauri::command]
 async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, String> {
     // Fetch all entries (files and folders) in the selected directory
@@ -164,6 +226,30 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
         Ok(entries) => entries,
         Err(_) => return Err(String::from("Failed to read directory")),
     };
+
+    match get_database() {
+        Ok(conn) => {
+            // Write last folder to the database
+            println!("{}", selected_folder);
+            match conn.execute(
+                "INSERT OR REPLACE INTO userdata (last_folder) VALUES (?1)",
+                [selected_folder.clone()],
+            ) {
+                Ok(_) => {
+                    println!("inserted db");
+                    // Insertion successful
+                }
+                Err(err) => {
+                    // Handle the error
+                    eprintln!("Error executing SQL query: {}", err);
+                }
+            }
+        }
+        Err(err) => {
+            // Handle the error
+            println!("Error opening database: {}", err);
+        }
+    }
 
     // Collect paths of files and folders into a vector of strings
     let mut info: Vec<FileInfoStruct> = Vec::new();
@@ -228,7 +314,6 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
                 if item_type == "image" {
                     match imagesize::size(path_str.clone()) {
                         Ok(size) => {
-                            println!("Image dimensions: {}x{}", size.width, size.height);
                             width = size.width;
                             height = size.height;
                         }

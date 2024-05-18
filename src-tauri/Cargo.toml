@@ -20,6 +20,7 @@ chrono = "0.4.38"
 sysinfo = "0.30.12"
 fs_extra = "1.2.0"
 imagesize = "0.12.0"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
