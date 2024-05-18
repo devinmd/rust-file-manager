@@ -52,17 +52,8 @@ div#top-bar {
   border-bottom: 2px solid var(--bg-1);
 }
 
-div#top-bar button {
-  background-color: var(--bg-1);
-  padding: 1px 12px;
-  cursor: pointer;
-  height: 24px;
-  font-weight: 400;
-  color: var(--text);
-}
-
-div#top-bar button:hover {
-  background-color: var(--bg-2);
+div#top-bar select#sort {
+  margin-left: auto;
 }
 
 div#top-bar div#path {
@@ -79,12 +70,7 @@ div#top-bar div#path img {
 
 div#top-bar div#path button {
   background-color: transparent;
-  border-radius: 8px;
   padding: 0 8px;
-  cursor: pointer;
-  height: 24px;
-  font-weight: 400;
-  color: var(--text);
 }
 
 div#top-bar div#path button:hover {
@@ -166,6 +152,7 @@ div#content div#items button {
   background-color: transparent;
   gap: 8px;
   padding: 8px;
+  cursor: default;
   justify-content: start;
   height: fit-content;
   align-items: center;
@@ -212,13 +199,7 @@ div#content div#selected-file div#actions {
   gap: 8px;
 }
 div#content div#selected-file div#actions button {
-  height: 24px;
-  padding: 0 8px;
   flex-grow: 1;
-  color: var(--text-1);
-  font-weight: 500;
-  cursor: pointer;
-  background: var(--bg-1);
 }
 
 div#content div#selected-file div#actions button:hover {

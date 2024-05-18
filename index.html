@@ -20,8 +20,16 @@
 			<div id="top-bar">
 				<button id="btn-home">Home</button>
 				<button id="btn-openfolder">Open Folder</button>
+				<button id="btn-refresh">Refresh</button>
 				<div id="path"></div>
-				<p id="current-folder-name"></p>
+				<select id="sort">
+					<option value="created_false">Date created descending (New to old)</option>
+					<option value="created_true">Date created ascending (Old to new)</option>
+					<option value="name_true">Name ascending (A-Z)</option>
+					<option value="name_false">Name descending (Z-A)</option>
+					<option value="size_false">Size descending (big to small)</option>
+					<option value="size_true">Size ascending (small to big)</option>
+				</select>
 			</div>
 			<div id="home">
 				<h1 id="greeting"></h1>

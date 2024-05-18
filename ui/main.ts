@@ -53,6 +53,13 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   }
 });
 
+document.getElementById("sort")?.addEventListener("input", async () => {
+  // user changed sort
+  try {
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
 document.getElementById("btn-home")?.addEventListener("click", async () => {
   // home butotn
   document.querySelector("#home").setAttribute("style", "display: flex;");
@@ -60,8 +67,19 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 });
 
 async function goto_folder(selected_folder_path: string) {
-  let data = await invoke("get_items", { selectedFolder: selected_folder_path });
-  data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
+  const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
+  console.log(sort);
+  let data = await invoke("get_items", {
+    selectedFolder: selected_folder_path,
+    sort: sort[0],
+    ascending: /true/i.test(sort[1]),
+  });
+
+  (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
+    goto_folder(selected_folder_path);
+  };
+
+  // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
   console.log("got items from selected folder");
   console.log(data);
   display_items(data);
@@ -152,6 +170,7 @@ function display_items(data: Item[]): void {
       grid.appendChild(load_more);
     }
   }
+
   console.log("displayed files");
 }
 

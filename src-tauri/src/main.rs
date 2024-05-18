@@ -157,22 +157,6 @@ struct FileInfoStruct {
     width: usize,
 }
 
-#[derive(Serialize)]
-
-struct FolderInfoStruct {
-    name: String,
-    created: Option<u64>,
-    modified: Option<u64>,
-    accessed: Option<u64>,
-    created_formatted: String,
-    modified_formatted: String,
-    accessed_formatted: String,
-    path_vec: Vec<String>,
-    path_str: String,
-    size_bytes: Option<u64>,
-    size_formatted: Option<String>,
-}
-
 fn get_database() -> Result<Connection, rusqlite::Error> {
     // Connect to the database. This will create the database file if it doesn't exist.
     let conn = Connection::open("appdata.db")?;
@@ -184,7 +168,9 @@ async fn get_last_folder() -> Result<String, String> {
     match get_database() {
         Ok(conn) => {
             // Prepare an SQL query to retrieve the last folder
-            let mut stmt = match conn.prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1") {
+            let mut stmt = match conn
+                .prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1")
+            {
                 Ok(stmt) => stmt,
                 Err(err) => {
                     eprintln!("Error preparing SQL query: {}", err);
@@ -219,7 +205,11 @@ async fn get_last_folder() -> Result<String, String> {
 }
 
 #[tauri::command]
-async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, String> {
+async fn get_items(
+    selected_folder: String,
+    sort: String,
+    ascending: bool,
+) -> Result<Vec<FileInfoStruct>, String> {
     // Fetch all entries (files and folders) in the selected directory
     use std::fs;
     let entries: fs::ReadDir = match fs::read_dir(&selected_folder) {
@@ -295,9 +285,6 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             if metadata.is_dir() {
                 // is folder/
                 item_type = "folder".to_string();
-                // let size_info = get_directory_size_info(&path_str);
-                // size_bytes = size_info.1;
-                // size_formatted = size_info.0;
             } else {
                 // is file
                 item_type = match extension.to_lowercase().as_str() {
@@ -361,28 +348,50 @@ async fn get_items(selected_folder: String) -> Result<Vec<FileInfoStruct>, Strin
             });
         }
     }
+
+    sort_items(&mut info, &sort, ascending);
+
+    // sort
     Ok(info)
 }
 
-extern crate fs_extra;
-
-use fs_extra::dir::get_size;
-
-fn get_directory_size_info(path_str: &str) -> (Option<String>, Option<u64>) {
-    let mut size_formatted: Option<String> = None;
-    let mut size_bytes: Option<u64> = None;
-
-    match get_size(path_str) {
-        Ok(size) => {
-            size_bytes = Some(size);
-            size_formatted = Some(format_size(size));
+fn sort_items(folders: &mut Vec<FileInfoStruct>, sort_by: &str, ascending: bool) {
+    match sort_by {
+        "name" => {
+            folders.sort_by(|a, b| {
+                if ascending {
+                    a.name.cmp(&b.name)
+                } else {
+                    b.name.cmp(&a.name)
+                }
+            });
         }
-        Err(e) => {
-            eprintln!("Failed to get directory size: {}", e);
+        "size" => {
+            folders.sort_by(|a, b| {
+                let a_size = a.size_bytes.unwrap_or(0);
+                let b_size = b.size_bytes.unwrap_or(0);
+                if ascending {
+                    a_size.cmp(&b_size)
+                } else {
+                    b_size.cmp(&a_size)
+                }
+            });
+        }
+        "created" => {
+            folders.sort_by(|a, b| {
+                let a_created = a.created.unwrap_or(0);
+                let b_created = b.created.unwrap_or(0);
+                if ascending {
+                    a_created.cmp(&b_created)
+                } else {
+                    b_created.cmp(&a_created)
+                }
+            });
+        }
+        _ => {
+            println!("Invalid sort field");
         }
     }
-
-    (size_formatted, size_bytes)
 }
 
 #[tauri::command]
@@ -400,51 +409,6 @@ async fn open_folder_dialog() -> Result<String, String> {
                 .to_string_lossy()
                 .to_string()
                 .replace("\\", "/");
-
-            // let mut info: Vec<FolderInfoStruct> = Vec::new();
-
-            /*let size_bytes = fs_extra::dir::get_size(path_str.clone()).unwrap();
-            let size_formatted: Option<String> = if let Some(size_bytes) = size_bytes {
-                Some(format_size(size_bytes))
-            } else {
-                None
-            };*/
-
-            // let mut size_formatted: String = String::new();
-            // let mut size_bytes: u64 = 0;
-
-            // match fs_extra::dir::get_size(&path_str) {
-            //     Ok(size_bytes) => {
-            //         size_formatted = format_size(size_bytes);
-            //     }
-            //     Err(e) => {
-            //         eprintln!("Failed to get directory size: {}", e);
-            //     }
-            // }
-
-            // println!("{}",size_formatted);
-
-            // You can add more actions here
-            // For example: Listing files in the folder, checking if certain files exist, etc.
-            // Ensure that these actions are asynchronous if needed
-
-            // Return the folder path
-
-            // info.push(FolderInfoStruct {
-            //     name,
-            //     created,
-            //     modified,
-            //     accessed,
-            //     created_formatted: format_timestamp(created),
-            //     modified_formatted: format_timestamp(modified),
-            //     accessed_formatted: format_timestamp(accessed),
-            //     path_vec,
-            //     path_str,
-            //     size_bytes,
-            //     size_formatted,
-            //     item_type,
-            //     extension,
-            // });
             Ok(path_str)
         }
         None => {
