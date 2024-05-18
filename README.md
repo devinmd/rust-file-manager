@@ -27,6 +27,8 @@ File manager made with Rust & Tauri
 
 TODO
 - should send folder information separate because if it's empty there is nowhere to grab it from
+- speed up fetching files, less conversions and add optimizations
+- index the files into the sqlite db for faster access
 
 WALK MODE
 - path vec is for the whole directory, so it won't be correct for all

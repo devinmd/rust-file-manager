@@ -77,6 +77,7 @@ async function goto_folder(selected_folder_path: string) {
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
   const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
   console.log(sort);
+  console.log(selected_folder_path)
   let data = await invoke("get_items", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
