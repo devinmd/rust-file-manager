@@ -13,7 +13,6 @@ File manager made with Rust & Tauri
 - get size of folders
 - add more info to bottom bar
 
-- arrow key navigation
 - favorite files & folders
 - show or hide hidden files (dotfiles)
 - option to lock file thumbnails to square
@@ -24,6 +23,11 @@ File manager made with Rust & Tauri
   - favorited folders & files, clock, notes, suggested files/frequently used
 - app icon
 
+
+- store files in database for faster access
+- when user requests files from folder, query database for them
+
+- analyze file types and give % (eg: 25% images, 35% python, 35% javacsript, 5% other)
 
 TODO
 - should send folder information separate because if it's empty there is nowhere to grab it from

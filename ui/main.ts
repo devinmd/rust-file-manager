@@ -77,7 +77,7 @@ async function goto_folder(selected_folder_path: string) {
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
   const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
   console.log(sort);
-  console.log(selected_folder_path)
+  console.log(selected_folder_path);
   let data = await invoke("get_items", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
@@ -92,6 +92,7 @@ async function goto_folder(selected_folder_path: string) {
   // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
   console.log("got items from selected folder");
   console.log(data);
+  selectedItemIndex = -1;
   display_items(data);
 }
 
@@ -119,7 +120,6 @@ function display_items(data: Item[]): void {
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;
-      console.log(vec.join("/"));
       goto_folder(vec.join("/"));
     };
     btn.innerHTML = vec[i];
@@ -161,7 +161,7 @@ function display_items(data: Item[]): void {
       item_size.innerHTML = item.size_formatted;
       item_size.className = "size";
       item_container.onclick = function () {
-        select_item(item, item_container);
+        select_item(item, item_container, parseInt(i));
       };
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
@@ -198,7 +198,16 @@ interface Item {
   height: number;
 }
 
-function select_item(item: Item, item_container: HTMLButtonElement): void {
+var selectedItemIndex = -1;
+
+function select_item(item: Item, item_container: HTMLButtonElement, index: number): void {
+  // add active class
+  document.querySelectorAll("button.active").forEach((btn) => btn.classList.remove("active"));
+  item_container.classList.add("active");
+  // remove active class from all other items
+
+  selectedItemIndex = index;
+
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
 
@@ -224,7 +233,7 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
 
   const location = document.createElement("p");
   location.innerHTML = `Location<span>${item.path_str}</span>`;
- toAppend.push(location)
+  toAppend.push(location);
 
   const dimensions = document.createElement("p");
   dimensions.innerHTML = `Dimensions<span>${item.width} x ${item.height}</span>`;
@@ -253,6 +262,8 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
         console.log("File deleted successfully");
         // delete the item from file list
         item_container.remove();
+        selectedItemIndex -=1;
+        nextItem()
       })
       .catch((err: Error) => {
         console.error(err);
@@ -285,6 +296,34 @@ function select_item(item: Item, item_container: HTMLButtonElement): void {
 
   sidebar.append(generate_item_preview(item, true), info, actions);
 }
+
+// navigate selected item with arrow keys
+const keyPress = (event) => {
+  switch (event.key) {
+    case "ArrowRight":
+    nextItem()
+      break;
+    case "ArrowLeft":
+    previousItem()
+      break;
+    default:
+      break;
+  }
+};
+
+function nextItem(){
+  let itemList = document.querySelector("#items").children;
+  let nextItem = itemList[selectedItemIndex + 1] as HTMLButtonElement;
+      if (nextItem) nextItem.click();
+}
+
+function previousItem(){
+  let itemList = document.querySelector("#items").children;
+  let previousItem = itemList[selectedItemIndex - 1] as HTMLButtonElement;
+      if (previousItem) previousItem.click();
+}
+
+document.addEventListener("keydown", keyPress);
 
 function generate_item_preview(
   item: Item,
