@@ -151,6 +151,7 @@ function display_items(data: Item[]): void {
     let clone = items.slice(0);
     let spliced = clone.splice(offset, amount);
     load_more.remove();
+
     for (let i in spliced) {
       const item = spliced[i];
       const item_container = document.createElement("button");
@@ -262,8 +263,8 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
         console.log("File deleted successfully");
         // delete the item from file list
         item_container.remove();
-        selectedItemIndex -=1;
-        nextItem()
+        selectedItemIndex -= 1;
+        nextItem();
       })
       .catch((err: Error) => {
         console.error(err);
@@ -301,26 +302,35 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
 const keyPress = (event) => {
   switch (event.key) {
     case "ArrowRight":
-    nextItem()
+      nextItem();
       break;
     case "ArrowLeft":
-    previousItem()
+      previousItem();
+      break;
+    case "Enter":
+      openItem();
       break;
     default:
       break;
   }
 };
 
-function nextItem(){
+function openItem() {
   let itemList = document.querySelector("#items").children;
-  let nextItem = itemList[selectedItemIndex + 1] as HTMLButtonElement;
-      if (nextItem) nextItem.click();
+  let item = itemList[selectedItemIndex] as HTMLButtonElement;
+  item.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
 }
 
-function previousItem(){
+function nextItem() {
+  let itemList = document.querySelector("#items").children;
+  let nextItem = itemList[selectedItemIndex + 1] as HTMLButtonElement;
+  if (nextItem) nextItem.click();
+}
+
+function previousItem() {
   let itemList = document.querySelector("#items").children;
   let previousItem = itemList[selectedItemIndex - 1] as HTMLButtonElement;
-      if (previousItem) previousItem.click();
+  if (previousItem) previousItem.click();
 }
 
 document.addEventListener("keydown", keyPress);

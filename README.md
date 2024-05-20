@@ -29,6 +29,8 @@ File manager made with Rust & Tauri
 
 - analyze file types and give % (eg: 25% images, 35% python, 35% javacsript, 5% other)
 
+- arrow keys don't work on folders that require pagination
+
 TODO
 - should send folder information separate because if it's empty there is nowhere to grab it from
 - speed up fetching files, less conversions and add optimizations
