@@ -60,6 +60,7 @@ QOL
 
 
 BACKBURNER
+- handle .app "folders"
 - support for external drives & servers
 - make file dates local time, not gmt
 - create files & folders

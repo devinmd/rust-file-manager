@@ -25,6 +25,7 @@ div#home {
 
 div#home div#drives {
   display: flex;
+  gap: 16px;
 }
 
 div#home div#drives div {
@@ -113,7 +114,7 @@ div#content div#items {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   height: calc(100vh - 128px);
-  row-gap: 16px;
+  /* row-gap: 16px; */
   grid-auto-rows: min-content;
   overflow-y: auto;
 }

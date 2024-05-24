@@ -150,7 +150,6 @@ struct FileInfoStruct {
     created_formatted: String,
     modified_formatted: String,
     accessed_formatted: String,
-    path_vec: Vec<String>,
     path_str: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
     size_formatted: Option<String>, // New field for formatted size
@@ -278,7 +277,7 @@ async fn get_items(
     match read_directory_to_vec(Path::new(&selected_folder), walk) {
         Ok(entries) => {
             for entry in entries {
-                println!("{:?}", entry);
+                // println!("{:?}", entry);
                 // if let Ok(entry) = entry {
                 let name = entry.file_name().unwrap().to_string_lossy().into_owned();
                 //
@@ -359,18 +358,6 @@ async fn get_items(
                     }
                 }
 
-                // get path to item's container as a vector
-                let path_vec: Vec<String> = PathBuf::from(selected_folder.clone())
-                    .components()
-                    .enumerate()
-                    .filter_map(|(index, c)| {
-                        if index != 1 {
-                            Some(c.as_os_str().to_string_lossy().to_string())
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
 
                 info.push(FileInfoStruct {
                     name,
@@ -380,7 +367,6 @@ async fn get_items(
                     created_formatted: format_timestamp(created),
                     modified_formatted: format_timestamp(modified),
                     accessed_formatted: format_timestamp(accessed),
-                    path_vec,
                     path_str,
                     size_bytes,
                     size_formatted,

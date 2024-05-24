@@ -23,7 +23,7 @@ async function goto_last_folder() {
 
 async function get_system_info() {
   const data = await invoke("get_system_info");
-  console.log("got system info");
+  console.log("system info:");
   console.log(data);
   let disks = data.disks;
   document.querySelector("#greeting").innerHTML = data.name;
@@ -76,6 +76,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 async function goto_folder(selected_folder_path: string) {
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
   const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
+  console.log("sort:")
   console.log(sort);
   console.log(selected_folder_path);
   let data = await invoke("get_items", {
@@ -90,7 +91,7 @@ async function goto_folder(selected_folder_path: string) {
   };
 
   // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
-  console.log("got items from selected folder");
+  console.log("data:");
   console.log(data);
   selectedItemIndex = -1;
   display_items(data);
@@ -112,8 +113,10 @@ function display_items(data: Item[]): void {
   grid.innerHTML = "";
 
   // make path buttons
-  const vec = data[0].path_vec;
-  vec[0] = "C:/";
+  const vec = data[0].path_str.split('/').slice(0, -1);
+  console.log("path:")
+  vec[0] = "";
+  console.log(vec)
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
     let btn = document.createElement("button");
@@ -193,7 +196,6 @@ interface Item {
   created_formatted: string;
   extension: string;
   modified_formatted: string;
-  path_vec: string[];
   accessed_formatted: string;
   width: number;
   height: number;
@@ -281,8 +283,6 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   btn_favorite.innerHTML = "Favorite";
   // btn_rename.onclick = function () {
   // const new_name = rename_input.value;
-  // item.path_vec.push(new_name);
-  // console.log(item.path_vec.join("/"));
   // invoke("rename_item", { path: item.path_str, new: item.path_str + "test" });
   // };
   const btn_open = document.createElement("button");
