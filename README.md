@@ -4,66 +4,51 @@ File manager made with Rust & Tauri
 
 ## Todo
 
-- rename folders & files
-- media view mode
-  - walks all subfolders and displays all images & videos 
 - store user data (themes, etc.)
-- tags and custom metadata
-- right click context menu with actions
-- get size of folders
+- get size of folders -- too slow
 - add more info to bottom bar
-
-- favorite files & folders
-- show or hide hidden files (dotfiles)
-- option to lock file thumbnails to square
-- fetch only video thumbnails to speed up frontend
-- instead of using full image on preview & icons, store a low res thumbnail version
 - left sidebar with favorites
-- home menu
-  - favorited folders & files, clock, notes, suggested files/frequently used
-- app icon
 
-
+DATABASE
 - store files in database for faster access
 - when user requests files from folder, query database for them
 
-- analyze file types and give % (eg: 25% images, 35% python, 35% javacsript, 5% other)
-
+FIXES
 - arrow keys don't work on folders that require pagination
 
-TODO
-- should send folder information separate because if it's empty there is nowhere to grab it from
-- speed up fetching files, less conversions and add optimizations
-- index the files into the sqlite db for faster access
-
 WALK MODE
-- path vec is for the whole directory, so it won't be correct for all
 - somehow should add pagination in backend because some might have tons of files
 
-IN APP FEATURES
+FEATURES
 - search
-- refresh button
 - back & forward buttons
-- sort by
+- rename folders & files
+- tags and custom metadata
+- favorite files & folders
+- show or hide hidden files (dotfiles)
+- store low resolution thumbnails 
 
-UI
+FRONTEND
+- right click context menu with actions
 - column view
 - change grid size
 - list view (table)
-- custom themes
-- proper audio player
-
+- home menu
+- media view mode, hide filename & size, display images & videos locked to square 
 
 QOL
 - loaders
 - automaically keep loading files as user scrolls
-
+- app icon
 
 BACKBURNER
+- proper audio player
+- custom themes
 - handle .app "folders"
-- support for external drives & servers
+- support for file servers
 - make file dates local time, not gmt
 - create files & folders
+- preview text files
 - find similar images with phash function
 - find duplicate files
 - moving files
@@ -72,12 +57,10 @@ BACKBURNER
     - ctrl, shift + click
     - dragging to select
 - 3d model preview
-- zip files
-- unzip files
+- zip & unzip files
 - more detailed info on preview info
   - video duration
   - audio file duration
-  - custom fields
   - camera info
 - "open with" button
   - vscode, paint.net, photoshop, notepad, photos, web browser, etc.

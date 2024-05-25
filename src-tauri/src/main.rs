@@ -4,29 +4,27 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 extern crate rusqlite;
-use rusqlite::{ params, Connection, Result };
+use rusqlite::{params, Connection, Result};
 use serde::Serialize;
+use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
-use sysinfo::{ Disks, System };
+use sysinfo::{Disks, System};
 use trash;
 
 fn main() {
     prepare_db();
 
-    let _app = tauri::Builder
-        ::default()
-        .invoke_handler(
-            tauri::generate_handler![
-                open_folder_dialog,
-                open_file_in_default_app,
-                send_file_to_trash,
-                get_items,
-                get_last_folder,
-                rename_item,
-                get_system_info
-            ]
-        )
+    let _app = tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            open_folder_dialog,
+            open_file_in_default_app,
+            send_file_to_trash,
+            get_items,
+            get_last_folder,
+            rename_item,
+            get_system_info
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -40,7 +38,7 @@ fn prepare_db() -> Result<()> {
         "CREATE TABLE IF NOT EXISTS userdata (
             last_folder TEXT
         );",
-        []
+        [],
     )?;
     Ok(())
 }
@@ -136,7 +134,7 @@ fn rename_item(path: String, new: String) {
 }
 
 use std::fs;
-use std::time::{ SystemTime, UNIX_EPOCH };
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Serialize)]
 
@@ -153,10 +151,18 @@ struct FileInfoStruct {
     path_str: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
     size_formatted: Option<String>, // New field for formatted size
-    item_type: String, // image, video, text, 3d model, audio, folder
-    extension: String, // png, avif, mp3, wav, etc.
-    height: usize, // dimensions of file if image
+    item_type: String,       // image, video, text, 3d model, audio, folder
+    extension: String,       // png, avif, mp3, wav, etc.
+    height: usize,           // dimensions of file if image
     width: usize,
+}
+#[derive(Serialize)]
+
+struct FolderDataStruct {
+    name: String,
+    path_str: String,
+    item_type: String,
+    items: Vec<FileInfoStruct>,
 }
 
 fn get_database() -> Result<Connection, rusqlite::Error> {
@@ -170,8 +176,8 @@ async fn get_last_folder() -> Result<String, String> {
     match get_database() {
         Ok(conn) => {
             // Prepare an SQL query to retrieve the last folder
-            let mut stmt = match
-                conn.prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1")
+            let mut stmt = match conn
+                .prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1")
             {
                 Ok(stmt) => stmt,
                 Err(err) => {
@@ -242,8 +248,8 @@ async fn get_items(
     selected_folder: String,
     sort: String,
     ascending: bool,
-    walk: bool
-) -> Result<Vec<FileInfoStruct>, String> {
+    walk: bool,
+) -> Result<FolderDataStruct, String> {
     use std::fs;
 
     // add the folder to database
@@ -251,11 +257,10 @@ async fn get_items(
         Ok(conn) => {
             // Write last folder to the database
             println!("{}", selected_folder);
-            match
-                conn.execute("INSERT OR REPLACE INTO userdata (last_folder) VALUES (?1)", [
-                    selected_folder.clone(),
-                ])
-            {
+            match conn.execute(
+                "INSERT OR REPLACE INTO userdata (last_folder) VALUES (?1)",
+                [selected_folder.clone()],
+            ) {
                 Ok(_) => {
                     println!("inserted db");
                     // Insertion successful
@@ -273,7 +278,12 @@ async fn get_items(
     }
 
     // Get all the files and get info
-    let mut info: Vec<FileInfoStruct> = Vec::new();
+    let mut info = FolderDataStruct {
+        name: "name".to_string(),
+        items: Vec::new(),
+        path_str: selected_folder.clone(),
+        item_type: "folder".to_string()
+    };
     match read_directory_to_vec(Path::new(&selected_folder), walk) {
         Ok(entries) => {
             for entry in entries {
@@ -327,18 +337,8 @@ async fn get_items(
                 } else {
                     // is file
                     item_type = match extension.to_lowercase().as_str() {
-                        | "png"
-                        | "jpg"
-                        | "jpeg"
-                        | "gif"
-                        | "bmp"
-                        | "avif"
-                        | "webp"
-                        | "svg"
-                        | "apng"
-                        | "jfif"
-                        | "tiff"
-                        | "ico" => String::from("image"), // heic is not supported by html
+                        "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg"
+                        | "apng" | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
                         "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
                         "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
                         "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
@@ -358,8 +358,7 @@ async fn get_items(
                     }
                 }
 
-
-                info.push(FileInfoStruct {
+                info.items.push(FileInfoStruct {
                     name,
                     created,
                     modified,
@@ -380,7 +379,7 @@ async fn get_items(
         Err(err) => println!("Error: {}", err),
     }
 
-    sort_items(&mut info, &sort, ascending);
+    sort_items(&mut info.items, &sort, ascending);
 
     // sort
     Ok(info)
@@ -390,7 +389,11 @@ fn sort_items(folders: &mut Vec<FileInfoStruct>, sort_by: &str, ascending: bool)
     match sort_by {
         "name" => {
             folders.sort_by(|a, b| {
-                if ascending { a.name.cmp(&b.name) } else { b.name.cmp(&a.name) }
+                if ascending {
+                    a.name.cmp(&b.name)
+                } else {
+                    b.name.cmp(&a.name)
+                }
             });
         }
         "size" => {
@@ -432,7 +435,10 @@ async fn open_folder_dialog() -> Result<String, String> {
     match dialog_result {
         Some(selected_folder) => {
             // Convert the selected folder path to a string
-            let path_str = selected_folder.to_string_lossy().to_string().replace("\\", "/");
+            let path_str = selected_folder
+                .to_string_lossy()
+                .to_string()
+                .replace("\\", "/");
             Ok(path_str)
         }
         None => {
@@ -444,7 +450,7 @@ async fn open_folder_dialog() -> Result<String, String> {
 
 extern crate chrono;
 
-use chrono::{ DateTime, NaiveDateTime, Utc };
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 fn format_timestamp(ms_since_epoch: Option<u64>) -> String {
     match ms_since_epoch {

@@ -1,3 +1,5 @@
+import { event } from "@tauri-apps/api";
+
 //
 const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
 
@@ -100,20 +102,20 @@ async function goto_folder(selected_folder_path: string) {
 const page_size = 64;
 const default_theme = "dark";
 
-function display_items(data: Item[]): void {
+function display_items(data: Folder): void {
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: flex;");
 
   // remove dotfiles from file list
-  data = data.filter((obj) => !obj.name.startsWith("."));
+  data.items = data.items.filter((obj) => !obj.name.startsWith("."));
 
   // clear grid
   const grid = document.querySelector("#items");
   grid.innerHTML = "";
 
   // make path buttons
-  const vec = data[0].path_str.split('/').slice(0, -1);
+  const vec = data.path_str.split('/')
   console.log("path:")
   vec[0] = "";
   console.log(vec)
@@ -136,18 +138,29 @@ function display_items(data: Item[]): void {
   }
 
   // show file count
-  document.querySelector("#current-folder-info").innerHTML = data.length + " items";
+  document.querySelector("#current-folder-info").innerHTML = data.items.length + " items";
+
+  // if folder is empty
+  if(data.items.length == 0){
+
+    let empty_folder_text = document.createElement('h5')
+    empty_folder_text.innerHTML = `This Folder is Empty`
+    empty_folder_text.className = 'empty-folder-text'
+    document.querySelector('#items').append(empty_folder_text)
+    console.log("displayed files (folder is empty)");
+
+  }
 
   const load_more = document.createElement("button");
   load_more.innerHTML = "Load More";
   load_more.id = "btn-load-more";
   load_more.onclick = function () {
-    display_page(data, page_size, page_size * (current_page + 1));
+    display_page(data.items, page_size, page_size * (current_page + 1));
     current_page += 1;
   };
 
   // display files
-  display_page(data, page_size, 0);
+  display_page(data.items, page_size, 0);
   let current_page = 0;
 
   function display_page(items: Item[], amount: number, offset: number) {
@@ -199,6 +212,13 @@ interface Item {
   accessed_formatted: string;
   width: number;
   height: number;
+}
+
+interface Folder {
+  items: Item[],
+  name: string,
+  item_type: string,
+  path_str: string,
 }
 
 var selectedItemIndex = -1;

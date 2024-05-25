@@ -110,6 +110,7 @@ select {
   font-size: 12px;
   height: 24px;
   background-color: var(--bg-1);
+  appearance: none;
   -webkit-appearance: none;
   border-radius: 8px;
   border: none;

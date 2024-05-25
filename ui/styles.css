@@ -240,3 +240,9 @@ div#content div#selected-file div#info p span {
   float: right;
   color: var(--text-1);
 }
+
+.empty-folder-text {
+  font-weight: 500;
+  color: var(--text-2);
+  text-align: center;
+}
