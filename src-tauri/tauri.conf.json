@@ -47,7 +47,13 @@
         "minWidth": 100,
         "minHeight": 100,
         "maximizable": true,
-        "minimizable": true
+        "minimizable": true,
+        "label": "main",
+        "url": "index.html",
+        "maximized": false,
+        "decorations": true,
+        "alwaysOnTop": false,
+        "transparent": false
       }
     ],
     "security": {
