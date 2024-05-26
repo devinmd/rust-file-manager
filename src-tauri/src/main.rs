@@ -145,9 +145,6 @@ struct FileInfoStruct {
     created: Option<u64>,
     modified: Option<u64>,
     accessed: Option<u64>,
-    created_formatted: String,
-    modified_formatted: String,
-    accessed_formatted: String,
     path_str: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
     size_formatted: Option<String>, // New field for formatted size
@@ -251,6 +248,8 @@ async fn get_items(
     walk: bool,
 ) -> Result<FolderDataStruct, String> {
     use std::fs;
+    use std::time::Instant;
+    let now = Instant::now();
 
     // add the folder to database
     match get_database() {
@@ -282,7 +281,7 @@ async fn get_items(
         name: "name".to_string(),
         items: Vec::new(),
         path_str: selected_folder.clone(),
-        item_type: "folder".to_string()
+        item_type: "folder".to_string(),
     };
     match read_directory_to_vec(Path::new(&selected_folder), walk) {
         Ok(entries) => {
@@ -363,9 +362,6 @@ async fn get_items(
                     created,
                     modified,
                     accessed,
-                    created_formatted: format_timestamp(created),
-                    modified_formatted: format_timestamp(modified),
-                    accessed_formatted: format_timestamp(accessed),
                     path_str,
                     size_bytes,
                     size_formatted,
@@ -381,7 +377,9 @@ async fn get_items(
 
     sort_items(&mut info.items, &sort, ascending);
 
-    // sort
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+
     Ok(info)
 }
 

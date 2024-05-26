@@ -1,4 +1,4 @@
-import { event } from "@tauri-apps/api";
+// import { event } from "@tauri-apps/api";
 
 //
 const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
@@ -78,7 +78,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 async function goto_folder(selected_folder_path: string) {
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
   const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
-  console.log("sort:")
+  console.log("sort:");
   console.log(sort);
   console.log(selected_folder_path);
   let data = await invoke("get_items", {
@@ -103,6 +103,7 @@ const page_size = 64;
 const default_theme = "dark";
 
 function display_items(data: Folder): void {
+  const startTime = new Date().getTime();
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: flex;");
@@ -115,10 +116,10 @@ function display_items(data: Folder): void {
   grid.innerHTML = "";
 
   // make path buttons
-  const vec = data.path_str.split('/')
-  console.log("path:")
+  const vec = data.path_str.split("/");
+  console.log("path:");
   vec[0] = "";
-  console.log(vec)
+  console.log(vec);
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
     let btn = document.createElement("button");
@@ -141,14 +142,12 @@ function display_items(data: Folder): void {
   document.querySelector("#current-folder-info").innerHTML = data.items.length + " items";
 
   // if folder is empty
-  if(data.items.length == 0){
-
-    let empty_folder_text = document.createElement('h5')
-    empty_folder_text.innerHTML = `This Folder is Empty`
-    empty_folder_text.className = 'empty-folder-text'
-    document.querySelector('#items').append(empty_folder_text)
+  if (data.items.length == 0) {
+    let empty_folder_text = document.createElement("h5");
+    empty_folder_text.innerHTML = `This Folder is Empty`;
+    empty_folder_text.className = "empty-folder-text";
+    document.querySelector("#items").append(empty_folder_text);
     console.log("displayed files (folder is empty)");
-
   }
 
   const load_more = document.createElement("button");
@@ -197,6 +196,13 @@ function display_items(data: Folder): void {
       grid.appendChild(load_more);
     }
   }
+  // Get the end time
+  const endTime = Date.now();
+
+  // Calculate the elapsed time
+  const elapsedTime = endTime - startTime;
+
+  console.log(`Elapsed time: ${elapsedTime} milliseconds`);
 
   console.log("displayed files");
 }
@@ -206,19 +212,19 @@ interface Item {
   path_str: string;
   name: string;
   size_formatted: string;
-  created_formatted: string;
   extension: string;
-  modified_formatted: string;
-  accessed_formatted: string;
   width: number;
   height: number;
+  modified: number;
+  accessed: number;
+  created: number;
 }
 
 interface Folder {
-  items: Item[],
-  name: string,
-  item_type: string,
-  path_str: string,
+  items: Item[];
+  name: string;
+  item_type: string;
+  path_str: string;
 }
 
 var selectedItemIndex = -1;
@@ -263,15 +269,15 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   item.width ? toAppend.push(dimensions) : null;
 
   const created = document.createElement("p");
-  created.innerHTML = `Created<span>${item.created_formatted}</span>`;
+  created.innerHTML = `Created<span>${formatDate(item.created)}</span>`;
   toAppend.push(created);
 
   const accessed = document.createElement("p");
-  accessed.innerHTML = `Accessed<span>${item.accessed_formatted}</span>`;
+  accessed.innerHTML = `Accessed<span>${formatDate(item.accessed)}</span>`;
   toAppend.push(accessed);
 
   const modified = document.createElement("p");
-  modified.innerHTML = `Modified<span>${item.modified_formatted}</span>`;
+  modified.innerHTML = `Modified<span>${formatDate(item.modified)}</span>`;
   toAppend.push(modified);
 
   info.append(...toAppend);
@@ -440,4 +446,37 @@ function generate_item_preview(
 function change_theme(t: string): void {
   const root = document.querySelector(":root");
   root.setAttribute("theme", t);
+}
+
+function formatDate(epoch: number): string {
+  const date = new Date(epoch * 1000); // Convert epoch to milliseconds
+  const days: string[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months: string[] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const weekDay: string = days[date.getUTCDay()];
+  const month: string = months[date.getUTCMonth()];
+  const day: number = date.getUTCDate();
+  const year: number = date.getUTCFullYear();
+
+  let hours: number | string = date.getUTCHours();
+  let minutes: number | string = date.getUTCMinutes();
+
+   // Pad single digit hours and minutes with a leading zero
+   hours = hours < 10 ? '0' + hours : hours;
+   minutes = minutes < 10 ? '0' + minutes : minutes;
+
+  return `${weekDay}, ${month} ${day}, ${year}, ${hours}:${minutes}`;
 }
