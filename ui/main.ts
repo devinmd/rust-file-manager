@@ -334,7 +334,16 @@ const keyPress = (event) => {
       previousItem();
       break;
     case "Enter":
+      // disable default functionality
+      event.preventDefault();
+      event.stopPropagation();
       openItem();
+      break;
+    case "Tab":
+      // disable default functionality
+      console.log("tab");
+      event.preventDefault();
+      event.stopPropagation();
       break;
     default:
       break;
@@ -470,13 +479,8 @@ function formatDate(epoch: number): string {
   const month: string = months[date.getUTCMonth()];
   const day: number = date.getUTCDate();
   const year: number = date.getUTCFullYear();
-
-  let hours: number | string = date.getUTCHours();
-  let minutes: number | string = date.getUTCMinutes();
-
-   // Pad single digit hours and minutes with a leading zero
-   hours = hours < 10 ? '0' + hours : hours;
-   minutes = minutes < 10 ? '0' + minutes : minutes;
+  let hours: string = String(date.getUTCHours()).padStart(2, "0");
+  let minutes: string = String(date.getUTCMinutes()).padStart(2, "0");
 
   return `${weekDay}, ${month} ${day}, ${year}, ${hours}:${minutes}`;
 }
