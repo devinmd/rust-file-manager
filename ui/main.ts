@@ -325,7 +325,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
 }
 
 // navigate selected item with arrow keys
-const keyPress = (event) => {
+const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
     case "ArrowRight":
       nextItem();
@@ -350,6 +350,8 @@ const keyPress = (event) => {
   }
 };
 
+document.addEventListener("keydown", keyPress);
+
 function openItem() {
   let itemList = document.querySelector("#items").children;
   let item = itemList[selectedItemIndex] as HTMLButtonElement;
@@ -367,8 +369,6 @@ function previousItem() {
   let previousItem = itemList[selectedItemIndex - 1] as HTMLButtonElement;
   if (previousItem) previousItem.click();
 }
-
-document.addEventListener("keydown", keyPress);
 
 function generate_item_preview(
   item: Item,

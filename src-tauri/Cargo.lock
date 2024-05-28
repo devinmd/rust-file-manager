@@ -3023,6 +3023,7 @@ dependencies = [
  "chrono",
  "fs_extra",
  "imagesize",
+ "lazy_static",
  "open 5.1.3",
  "rusqlite",
  "serde",

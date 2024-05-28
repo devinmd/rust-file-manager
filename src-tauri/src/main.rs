@@ -4,17 +4,31 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 extern crate rusqlite;
+use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::Mutex;
+use std::time::Instant;
 use sysinfo::{Disks, System};
 use trash;
 
-fn main() {
-    prepare_db();
+lazy_static! {
+    static ref DB_CONNECTION: Mutex<Connection> =
+        Mutex::new(Connection::open("appdata.db").unwrap());
+}
 
+fn main() {
+    let mut now = Instant::now();
+    if let Err(err) = prepare_db() {
+        eprintln!("Failed to prepare the database: {}", err);
+    }
+
+    println!("Prepared databse connection in {:.2?}", now.elapsed());
+    now = Instant::now();
+    
     let _app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
@@ -30,16 +44,27 @@ fn main() {
 }
 
 fn prepare_db() -> Result<()> {
-    // Connect to the database. This will create the database file if it doesn't exist.
-    let conn = Connection::open("appdata.db")?;
+    let conn = DB_CONNECTION.lock().unwrap();
 
-    // Create a table in appdata.db
     conn.execute(
         "CREATE TABLE IF NOT EXISTS userdata (
             last_folder TEXT
         );",
         [],
     )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS files (
+            path TEXT
+        );",
+        [],
+    )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS folders (
+            path TEXT
+        );",
+        [],
+    )?;
+
     Ok(())
 }
 
@@ -137,9 +162,6 @@ use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Serialize)]
-
-// i32 and i64 are SIGNED INTEGERS meaning they can be negative
-// u32 and u64 and UNSIGNED INTEGERS so they canno tbe negative
 struct FileInfoStruct {
     name: String,
     created: Option<u64>,
@@ -153,59 +175,44 @@ struct FileInfoStruct {
     height: usize,           // dimensions of file if image
     width: usize,
 }
-#[derive(Serialize)]
 
+#[derive(Serialize)]
 struct FolderDataStruct {
     name: String,
     path_str: String,
     item_type: String,
     items: Vec<FileInfoStruct>,
 }
-
-fn get_database() -> Result<Connection, rusqlite::Error> {
-    // Connect to the database. This will create the database file if it doesn't exist.
-    let conn = Connection::open("appdata.db")?;
-    Ok(conn)
-}
-
 #[tauri::command]
 async fn get_last_folder() -> Result<String, String> {
-    match get_database() {
-        Ok(conn) => {
-            // Prepare an SQL query to retrieve the last folder
-            let mut stmt = match conn
-                .prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1")
-            {
-                Ok(stmt) => stmt,
-                Err(err) => {
-                    eprintln!("Error preparing SQL query: {}", err);
-                    return Err(format!("Error preparing SQL query: {}", err));
-                }
-            };
+    let conn = DB_CONNECTION.lock().unwrap();
 
-            // Execute the query and fetch the result
-            let mut rows = match stmt.query([]) {
-                Ok(rows) => rows,
-                Err(err) => {
-                    eprintln!("Error querying the database: {}", err);
-                    return Err(format!("Error querying the database: {}", err));
-                }
-            };
-
-            // Fetch the result and build the response
-            if let Some(row) = rows.next().unwrap_or_else(|_| None) {
-                let last_folder: String = row.get(0).unwrap_or_default();
-                println!("{}", last_folder);
-                Ok(last_folder)
-            } else {
-                Err("No last folder found in the database".into())
+    // Prepare an SQL query to retrieve the last folder
+    let mut stmt =
+        match conn.prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1") {
+            Ok(stmt) => stmt,
+            Err(err) => {
+                eprintln!("Error preparing SQL query: {}", err);
+                return Err(format!("Error preparing SQL query: {}", err));
             }
-        }
+        };
+
+    // Execute the query and fetch the result
+    let mut rows = match stmt.query([]) {
+        Ok(rows) => rows,
         Err(err) => {
-            // Handle the error
-            eprintln!("Error opening database: {}", err);
-            Err(format!("Error opening database: {}", err))
+            eprintln!("Error querying the database: {}", err);
+            return Err(format!("Error querying the database: {}", err));
         }
+    };
+
+    // Fetch the result and build the response
+    if let Some(row) = rows.next().unwrap_or_else(|_| None) {
+        let last_folder: String = row.get(0).unwrap_or_default();
+        println!("{}", last_folder);
+        Ok(last_folder)
+    } else {
+        Err("No last folder found in the database".into())
     }
 }
 
@@ -248,137 +255,131 @@ async fn get_items(
     walk: bool,
 ) -> Result<FolderDataStruct, String> {
     use std::fs;
-    use std::time::Instant;
-    let now = Instant::now();
 
     // add the folder to database
-    match get_database() {
-        Ok(conn) => {
-            // Write last folder to the database
-            println!("{}", selected_folder);
-            match conn.execute(
-                "INSERT OR REPLACE INTO userdata (last_folder) VALUES (?1)",
-                [selected_folder.clone()],
-            ) {
-                Ok(_) => {
-                    println!("inserted db");
-                    // Insertion successful
-                }
-                Err(err) => {
-                    // Handle the error
-                    eprintln!("Error executing SQL query: {}", err);
-                }
-            }
+    let conn = DB_CONNECTION.lock().unwrap();
+
+    match conn.execute(
+        "INSERT INTO userdata (last_folder) VALUES (?1)",
+        [selected_folder.clone()],
+    ) {
+        Ok(_) => {
+            println!("inserted db");
+            // Insertion successful
         }
         Err(err) => {
             // Handle the error
-            println!("Error opening database: {}", err);
+            eprintln!("Error executing SQL query: {}", err);
         }
     }
 
-    // Get all the files and get info
     let mut info = FolderDataStruct {
         name: "name".to_string(),
         items: Vec::new(),
         path_str: selected_folder.clone(),
         item_type: "folder".to_string(),
     };
-    match read_directory_to_vec(Path::new(&selected_folder), walk) {
-        Ok(entries) => {
-            for entry in entries {
-                // println!("{:?}", entry);
-                // if let Ok(entry) = entry {
-                let name = entry.file_name().unwrap().to_string_lossy().into_owned();
-                //
 
-                let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
+    let mut now = Instant::now();
 
-                let path_str = entry
-                    .to_str()
-                    .unwrap_or("Invalid path")
-                    .to_string()
-                    .replace("\\", "/"); // should implement proper error handling later
+    let items = read_directory_to_vec(Path::new(&selected_folder), walk);
 
-                let created: Option<u64> = metadata
-                    .created()
-                    .ok()
-                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-                let modified: Option<u64> = metadata
-                    .modified()
-                    .ok()
-                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
-                let accessed: Option<u64> = metadata
-                    .accessed()
-                    .ok()
-                    .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+    println!("Received list of files in {:.2?}", now.elapsed());
+    now = Instant::now();
 
-                let item_type: String;
+    if let Ok(entries) = items {
+        for entry in entries {
+            let name = entry.file_name().unwrap().to_string_lossy().into_owned();
 
-                let mut size_formatted: Option<String> = None;
-                let mut size_bytes: Option<u64> = None;
+            let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
 
-                // Initialize height and width
-                let mut height: usize = 0;
-                let mut width: usize = 0;
+            let path_str = entry
+                .to_str()
+                .unwrap_or("Invalid path")
+                .to_string()
+                .replace("\\", "/"); // should implement proper error handling later
 
-                // Get the extension if it exists, convert to a String, and make it lowercase
-                let extension: Option<String> = entry
-                    .extension()
-                    .and_then(|ext| ext.to_str()) // Convert OsStr to &str
-                    .map(|ext| ext.to_lowercase()); // Convert &str to lowercase String
+            let created: Option<u64> = metadata
+                .created()
+                .ok()
+                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+            let modified: Option<u64> = metadata
+                .modified()
+                .ok()
+                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
+            let accessed: Option<u64> = metadata
+                .accessed()
+                .ok()
+                .map(|time: SystemTime| time.duration_since(UNIX_EPOCH).unwrap().as_secs());
 
-                // Provide a default value if the extension is None
-                let extension = extension.unwrap_or_default();
+            let item_type: String;
 
-                if metadata.is_dir() {
-                    // is folder/
-                    item_type = "folder".to_string();
-                } else {
-                    // is file
-                    item_type = match extension.to_lowercase().as_str() {
-                        "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg"
-                        | "apng" | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
-                        "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
-                        "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
-                        "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
-                        _ => String::from("file"),
-                    };
-                    size_bytes = Some(metadata.len());
-                    size_formatted = size_bytes.map(|size| format_size(size));
+            let mut size_formatted: Option<String> = None;
+            let mut size_bytes: Option<u64> = None;
 
-                    if item_type == "image" {
-                        match imagesize::size(path_str.clone()) {
-                            Ok(size) => {
-                                width = size.width;
-                                height = size.height;
-                            }
-                            Err(why) => println!("Error getting dimensions: {:?}", why),
+            // Initialize height and width
+            let mut height: usize = 0;
+            let mut width: usize = 0;
+
+            // Get the extension if it exists, convert to a String, and make it lowercase
+            let extension: Option<String> = entry
+                .extension()
+                .and_then(|ext| ext.to_str()) // Convert OsStr to &str
+                .map(|ext| ext.to_lowercase()); // Convert &str to lowercase String
+
+            // Provide a default value if the extension is None
+            let extension = extension.unwrap_or_default();
+
+            if metadata.is_dir() {
+                // is folder/
+                item_type = "folder".to_string();
+            } else {
+                // is file
+                item_type = match extension.to_lowercase().as_str() {
+                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng"
+                    | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
+                    "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
+                    "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
+                    "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
+                    _ => String::from("file"),
+                };
+                size_bytes = Some(metadata.len());
+                size_formatted = size_bytes.map(|size| format_size(size));
+
+                if item_type == "image" {
+                    match imagesize::size(path_str.clone()) {
+                        Ok(size) => {
+                            width = size.width;
+                            height = size.height;
                         }
+                        Err(why) => println!("Error getting dimensions: {:?}", why),
                     }
                 }
-
-                info.items.push(FileInfoStruct {
-                    name,
-                    created,
-                    modified,
-                    accessed,
-                    path_str,
-                    size_bytes,
-                    size_formatted,
-                    item_type,
-                    extension,
-                    height,
-                    width,
-                });
             }
+
+            info.items.push(FileInfoStruct {
+                name,
+                created,
+                modified,
+                accessed,
+                path_str,
+                size_bytes,
+                size_formatted,
+                item_type,
+                extension,
+                height,
+                width,
+            });
         }
-        Err(err) => println!("Error: {}", err),
+    } else if let Err(e) = items {
+        // error
+        println!("Error: {}", e);
     }
 
+    // sort
     sort_items(&mut info.items, &sort, ascending);
 
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("Compiled metadata & sorted items in {:.2?}", now.elapsed());
 
     Ok(info)
 }
