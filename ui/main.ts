@@ -76,6 +76,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 });
 
 async function goto_folder(selected_folder_path: string) {
+  const startTime = new Date().getTime();
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
   const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
   console.log("sort:");
@@ -92,18 +93,17 @@ async function goto_folder(selected_folder_path: string) {
     goto_folder(selected_folder_path);
   };
 
-  // data.sort((a, b) => b.size_bytes - a.size_bytes); // sort by size descending
   console.log("data:");
   console.log(data);
   selectedItemIndex = -1;
   display_items(data);
+  console.log(`Retrieved data and displayed items in ${Date.now() - startTime}ms`);
 }
 
 const page_size = 64;
 const default_theme = "dark";
 
 function display_items(data: Folder): void {
-  const startTime = new Date().getTime();
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: flex;");
@@ -116,7 +116,7 @@ function display_items(data: Folder): void {
   grid.innerHTML = "";
 
   // make path buttons
-  const vec = data.path_str.split("/");
+  const vec = data.path.split("/");
   console.log("path:");
   vec[0] = "";
   console.log(vec);
@@ -174,16 +174,16 @@ function display_items(data: Folder): void {
       item_name.innerHTML = item.name;
       item_name.className = "name";
       const item_size = document.createElement("p");
-      item_size.innerHTML = item.size_formatted;
+      item_size.innerHTML = formatBytes(item.size_bytes);
       item_size.className = "size";
       item_container.onclick = function () {
         select_item(item, item_container, parseInt(i));
       };
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
-          goto_folder(item.path_str);
+          goto_folder(item.path);
         } else {
-          invoke("open_file_in_default_app", { path: item.path_str });
+          invoke("open_file_in_default_app", { path: item.path });
         }
       };
       let thumbnail = document.createElement("div");
@@ -196,22 +196,15 @@ function display_items(data: Folder): void {
       grid.appendChild(load_more);
     }
   }
-  // Get the end time
-  const endTime = Date.now();
-
-  // Calculate the elapsed time
-  const elapsedTime = endTime - startTime;
-
-  console.log(`Elapsed time: ${elapsedTime} milliseconds`);
 
   console.log("displayed files");
 }
 
 interface Item {
   item_type: string;
-  path_str: string;
+  path: string;
   name: string;
-  size_formatted: string;
+  size_bytes: number;
   extension: string;
   width: number;
   height: number;
@@ -224,7 +217,7 @@ interface Folder {
   items: Item[];
   name: string;
   item_type: string;
-  path_str: string;
+  path: string;
 }
 
 var selectedItemIndex = -1;
@@ -257,11 +250,11 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   toAppend.push(type);
 
   const size = document.createElement("p");
-  size.innerHTML = `Size<span>${item.size_formatted}</span>`;
-  item.size_formatted ? toAppend.push(size) : null;
+  size.innerHTML = `Size<span>${formatBytes(item.size_bytes)}</span>`;
+  item.size_bytes ? toAppend.push(size) : null;
 
   const location = document.createElement("p");
-  location.innerHTML = `Location<span>${item.path_str}</span>`;
+  location.innerHTML = `Location<span>${item.path}</span>`;
   toAppend.push(location);
 
   const dimensions = document.createElement("p");
@@ -286,7 +279,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const btn_delete = document.createElement("button");
   btn_delete.innerHTML = "Delete";
   btn_delete.onclick = function () {
-    invoke("send_file_to_trash", { path: item.path_str })
+    invoke("send_file_to_trash", { path: item.path })
       .then(() => {
         console.log("File deleted successfully");
         // delete the item from file list
@@ -309,12 +302,12 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   btn_favorite.innerHTML = "Favorite";
   // btn_rename.onclick = function () {
   // const new_name = rename_input.value;
-  // invoke("rename_item", { path: item.path_str, new: item.path_str + "test" });
+  // invoke("rename_item", { path: item.path, new: item.path + "test" });
   // };
   const btn_open = document.createElement("button");
   btn_open.innerHTML = "Open";
   btn_open.onclick = function () {
-    invoke("open_file_in_default_app", { path: item.path_str });
+    invoke("open_file_in_default_app", { path: item.path });
   };
 
   const actions = document.createElement("div");
@@ -425,17 +418,18 @@ function generate_item_preview(
       break;
     case "image":
       elem = document.createElement("img") as HTMLImageElement;
-      elem.src = convertFileSrc(item.path_str);
+      elem.src = convertFileSrc(item.path);
       break;
     case "video":
+      elem = document.createElement("img") as HTMLImageElement;
       elem = document.createElement("video");
       elem.controls = video_controls;
-      elem.src = convertFileSrc(item.path_str);
+      elem.src = convertFileSrc(item.path);
       break;
     case "audio":
       elem = document.createElement("audio");
       elem.controls = true;
-      elem.src = convertFileSrc(item.path_str);
+      elem.src = convertFileSrc(item.path);
       break;
     default: // all other things
       elem = document.createElement("img");
@@ -483,4 +477,17 @@ function formatDate(epoch: number): string {
   let minutes: string = String(date.getUTCMinutes()).padStart(2, "0");
 
   return `${weekDay}, ${month} ${day}, ${year}, ${hours}:${minutes}`;
+}
+
+function formatBytes(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) return "0 Bytes";
+  if (bytes == null) return "";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }

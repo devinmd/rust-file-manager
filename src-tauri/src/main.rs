@@ -26,9 +26,9 @@ fn main() {
         eprintln!("Failed to prepare the database: {}", err);
     }
 
-    println!("Prepared databse connection in {:.2?}", now.elapsed());
+    println!("Established database connection in {:.2?}", now.elapsed());
     now = Instant::now();
-    
+
     let _app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
@@ -54,13 +54,21 @@ fn prepare_db() -> Result<()> {
     )?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS files (
-            path TEXT
+            path TEXT UNIQUE,
+            container TEXT,
+            name TEXT,
+            extension TEXT,
+            created NUMBER,
+            modified NUMBER,
+            accessed NUMBER,
+            item_type TEXT,
+            size_bytes NUMBER
         );",
         [],
     )?;
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS folders (
-            path TEXT
+        "CREATE TABLE IF NOT EXISTS indexed_folders (
+            path TEXT UNIQUE
         );",
         [],
     )?;
@@ -167,19 +175,19 @@ struct FileInfoStruct {
     created: Option<u64>,
     modified: Option<u64>,
     accessed: Option<u64>,
-    path_str: String,
+    path: String,
+    container: String,
     size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
-    size_formatted: Option<String>, // New field for formatted size
     item_type: String,       // image, video, text, 3d model, audio, folder
     extension: String,       // png, avif, mp3, wav, etc.
-    height: usize,           // dimensions of file if image
-    width: usize,
+                             // height: usize, // dimensions of file if image
+                             // width: usize,
 }
 
 #[derive(Serialize)]
-struct FolderDataStruct {
+struct ContainerDataStruct {
     name: String,
-    path_str: String,
+    path: String,
     item_type: String,
     items: Vec<FileInfoStruct>,
 }
@@ -253,30 +261,27 @@ async fn get_items(
     sort: String,
     ascending: bool,
     walk: bool,
-) -> Result<FolderDataStruct, String> {
+) -> Result<ContainerDataStruct, String> {
     use std::fs;
 
-    // add the folder to database
     let conn = DB_CONNECTION.lock().unwrap();
 
-    match conn.execute(
+    // add folder to database
+    if let Err(err) = conn.execute(
         "INSERT INTO userdata (last_folder) VALUES (?1)",
         [selected_folder.clone()],
     ) {
-        Ok(_) => {
-            println!("inserted db");
-            // Insertion successful
-        }
-        Err(err) => {
-            // Handle the error
-            eprintln!("Error executing SQL query: {}", err);
-        }
+        eprintln!("Error executing SQL query: {}", err);
+    } else {
+        // success
+        // println!("inserted db");
     }
 
-    let mut info = FolderDataStruct {
+    // final struct
+    let mut info = ContainerDataStruct {
         name: "name".to_string(),
         items: Vec::new(),
-        path_str: selected_folder.clone(),
+        path: selected_folder.clone(),
         item_type: "folder".to_string(),
     };
 
@@ -284,20 +289,84 @@ async fn get_items(
 
     let items = read_directory_to_vec(Path::new(&selected_folder), walk);
 
-    println!("Received list of files in {:.2?}", now.elapsed());
+    println!("Received list of items in {:.2?}", now.elapsed());
+
     now = Instant::now();
 
+    // loop through each item
     if let Ok(entries) = items {
         for entry in entries {
-            let name = entry.file_name().unwrap().to_string_lossy().into_owned();
-
-            let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
-
-            let path_str = entry
+            // get path
+            let path = entry
                 .to_str()
                 .unwrap_or("Invalid path")
                 .to_string()
                 .replace("\\", "/"); // should implement proper error handling later
+
+            // Prepare the SQL statement
+            let mut stmt = match
+                conn.prepare(
+                    "SELECT path, container, name, extension, created, modified, accessed, item_type, size_bytes FROM files WHERE path = ?1"
+                )
+            {
+                Ok(statement) => statement,
+                Err(err) => {
+                    eprintln!("Failed to prepare the statement: {}", err);
+                    continue; // Skip the failed preparation and continue execution
+                }
+            };
+
+            // Query the row
+            match stmt.query_row(params![path], |row| {
+                let path: String = row.get(0)?;
+                let container: String = row.get(1)?;
+                let name: String = row.get(2)?;
+                let extension: String = row.get(3)?;
+                let created: Option<u64> = row.get(4)?;
+                let modified: Option<u64> = row.get(5)?;
+                let accessed: Option<u64> = row.get(6)?;
+                let item_type: String = row.get(7)?;
+                let size_bytes: Option<u64> = row.get(8)?;
+
+                // println!("IN DATABASE: {}", path);
+
+                info.items.push(FileInfoStruct {
+                    name,
+                    created,
+                    modified,
+                    accessed,
+                    path,
+                    container,
+                    size_bytes,
+                    item_type,
+                    extension,
+                });
+                Ok(())
+            }) {
+                Ok(_) => {
+                    continue;
+                }
+                // Skip to the next item in the loop if a row is found in the database
+                Err(rusqlite::Error::QueryReturnedNoRows) => {
+                    println!("NOT IN DATABASE: {}", path);
+                }
+                Err(err) => {
+                    eprintln!("Failed to execute the statement: {}", err);
+                }
+            }
+
+            // if the file is not in the database, retrieve metadata
+
+            let name = entry.file_name().unwrap().to_string_lossy().into_owned();
+
+            let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
+
+            let container = entry
+                .parent()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned()
+                .replace("\\", "/");
 
             let created: Option<u64> = metadata
                 .created()
@@ -314,12 +383,11 @@ async fn get_items(
 
             let item_type: String;
 
-            let mut size_formatted: Option<String> = None;
             let mut size_bytes: Option<u64> = None;
 
             // Initialize height and width
-            let mut height: usize = 0;
-            let mut width: usize = 0;
+            // let mut height: usize = 0;
+            // let mut width: usize = 0;
 
             // Get the extension if it exists, convert to a String, and make it lowercase
             let extension: Option<String> = entry
@@ -344,17 +412,49 @@ async fn get_items(
                     _ => String::from("file"),
                 };
                 size_bytes = Some(metadata.len());
-                size_formatted = size_bytes.map(|size| format_size(size));
 
-                if item_type == "image" {
-                    match imagesize::size(path_str.clone()) {
+                // push to db
+                if
+                    let Err(err) = conn.execute(
+                        "INSERT INTO files (path, container, name, extension, created, modified,accessed,item_type,size_bytes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                        [
+                            &path,
+                            &container,
+                            &name,
+                            &extension,
+                            &created.map_or_else(
+                                || String::from("None"),
+                                |value| value.to_string()
+                            ),
+                            &modified.map_or_else(
+                                || String::from("None"),
+                                |value| value.to_string()
+                            ),
+                            &accessed.map_or_else(
+                                || String::from("None"),
+                                |value| value.to_string()
+                            ),
+                            &item_type,
+                            &size_bytes.map_or("None".to_string(), |num| num.to_string()),
+                        ]
+                    )
+                {
+                    eprintln!("Error executing SQL: {}", err);
+                } else {
+                    // success
+                    // println!("inserted db");
+                }
+
+                // get image dimensions
+                /* if item_type == "image" {
+                    match imagesize::size(path.clone()) {
                         Ok(size) => {
                             width = size.width;
                             height = size.height;
                         }
                         Err(why) => println!("Error getting dimensions: {:?}", why),
                     }
-                }
+                }*/
             }
 
             info.items.push(FileInfoStruct {
@@ -362,13 +462,13 @@ async fn get_items(
                 created,
                 modified,
                 accessed,
-                path_str,
+                path,
+                container,
                 size_bytes,
-                size_formatted,
                 item_type,
                 extension,
-                height,
-                width,
+                // height,
+                // width,
             });
         }
     } else if let Err(e) = items {
@@ -379,7 +479,7 @@ async fn get_items(
     // sort
     sort_items(&mut info.items, &sort, ascending);
 
-    println!("Compiled metadata & sorted items in {:.2?}", now.elapsed());
+    println!("Compiled metadata & sorted items {:.2?}", now.elapsed());
 
     Ok(info)
 }
@@ -434,11 +534,11 @@ async fn open_folder_dialog() -> Result<String, String> {
     match dialog_result {
         Some(selected_folder) => {
             // Convert the selected folder path to a string
-            let path_str = selected_folder
+            let path: String = selected_folder
                 .to_string_lossy()
                 .to_string()
                 .replace("\\", "/");
-            Ok(path_str)
+            Ok(path)
         }
         None => {
             // Handle the case when the user cancels the dialog
