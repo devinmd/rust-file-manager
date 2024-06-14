@@ -5,7 +5,7 @@
 
 extern crate rusqlite;
 use lazy_static::lazy_static;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Connection, OptionalExtension, Result};
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
@@ -29,13 +29,16 @@ fn main() {
     println!("Established database connection in {:.2?}", now.elapsed());
     now = Instant::now();
 
+    // this works
+    // set_userdata("theme", "light");
+
     let _app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_folder_dialog,
             open_file_in_default_app,
             send_file_to_trash,
             get_items,
-            get_last_folder,
+            get_userdata,
             rename_item,
             get_system_info
         ])
@@ -43,15 +46,37 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+fn set_userdata(
+    conn: &Connection,
+    key: &str,
+    value: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // let conn = DB_CONNECTION.lock().unwrap(); // Assuming DB_CONNECTION is MutexGuard<RusqliteConnection>
+
+    match conn.execute(
+        "INSERT INTO userdata (key, value) VALUES (?1, ?2)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        params![key, value],
+    ) {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            // Handle the error here
+            Err(Box::new(err))
+        }
+    }
+}
+
 fn prepare_db() -> Result<()> {
     let conn = DB_CONNECTION.lock().unwrap();
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS userdata (
-            last_folder TEXT
-        );",
+                  key TEXT PRIMARY KEY,
+                  value TEXT
+                  )",
         [],
     )?;
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS files (
             path TEXT UNIQUE,
@@ -66,12 +91,8 @@ fn prepare_db() -> Result<()> {
         );",
         [],
     )?;
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS indexed_folders (
-            path TEXT UNIQUE
-        );",
-        [],
-    )?;
+
+    set_userdata(&*conn, "theme", "dark");
 
     Ok(())
 }
@@ -191,37 +212,47 @@ struct ContainerDataStruct {
     item_type: String,
     items: Vec<FileInfoStruct>,
 }
+#[derive(Serialize)]
+struct UserDataStruct {
+    last_folder: Option<String>,
+    theme: Option<String>,
+}
+
+fn get_userdata_item(conn: &Connection, key: &str) -> Result<Option<String>> {
+    let mut stmt = conn.prepare("SELECT value FROM userdata WHERE key = ?1")?;
+    let mut rows = stmt.query_map(&[key], |row| row.get(0))?;
+
+    // Check if there's exactly one result (since key is unique)
+    if let Some(result) = rows.next() {
+        // Convert rusqlite::Result<String> to Result<Option<String>, rusqlite::Error>
+        Ok(result.map(Some)?)
+    } else {
+        Ok(None)
+    }
+}
+
 #[tauri::command]
-async fn get_last_folder() -> Result<String, String> {
-    let conn = DB_CONNECTION.lock().unwrap();
+fn get_userdata() -> Result<UserDataStruct, String> {
+    let conn = DB_CONNECTION
+        .lock()
+        .map_err(|_| "Failed to acquire DB connection".to_string())?;
 
-    // Prepare an SQL query to retrieve the last folder
-    let mut stmt =
-        match conn.prepare("SELECT last_folder FROM userdata ORDER BY ROWID DESC LIMIT 1") {
-            Ok(stmt) => stmt,
-            Err(err) => {
-                eprintln!("Error preparing SQL query: {}", err);
-                return Err(format!("Error preparing SQL query: {}", err));
-            }
-        };
-
-    // Execute the query and fetch the result
-    let mut rows = match stmt.query([]) {
-        Ok(rows) => rows,
+    let last_folder = match get_userdata_item(&conn, "last_folder") {
+        Ok(value) => value,
         Err(err) => {
-            eprintln!("Error querying the database: {}", err);
-            return Err(format!("Error querying the database: {}", err));
+            return Err(format!("Error fetching last_folder: {}", err));
         }
     };
 
-    // Fetch the result and build the response
-    if let Some(row) = rows.next().unwrap_or_else(|_| None) {
-        let last_folder: String = row.get(0).unwrap_or_default();
-        println!("{}", last_folder);
-        Ok(last_folder)
-    } else {
-        Err("No last folder found in the database".into())
-    }
+    let theme = match get_userdata_item(&conn, "theme") {
+        Ok(value) => value,
+        Err(err) => {
+            return Err(format!("Error fetching theme: {}", err));
+        }
+    };
+
+    let data = UserDataStruct { last_folder, theme };
+    Ok(data)
 }
 
 use walkdir::WalkDir;
@@ -266,16 +297,8 @@ async fn get_items(
 
     let conn = DB_CONNECTION.lock().unwrap();
 
-    // add folder to database
-    if let Err(err) = conn.execute(
-        "INSERT INTO userdata (last_folder) VALUES (?1)",
-        [selected_folder.clone()],
-    ) {
-        eprintln!("Error executing SQL query: {}", err);
-    } else {
-        // success
-        // println!("inserted db");
-    }
+    // update database with userdata
+    set_userdata(&*conn, "last_folder", &selected_folder.clone());
 
     // final struct
     let mut info = ContainerDataStruct {

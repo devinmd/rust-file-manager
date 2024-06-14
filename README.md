@@ -10,14 +10,10 @@ File manager made with Rust & Tauri
 - left sidebar with favorites
 
 DATABASE
-- store files in database for faster access
-- when user requests files from folder, query database for them
+- skip the fetching files step and can just query database
 
 FIXES
 - arrow keys don't work on folders that require pagination
-
-WALK MODE
-- somehow should add pagination in backend because some might have tons of files
 
 FEATURES
 - search

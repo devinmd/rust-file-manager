@@ -8,19 +8,25 @@ const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
 // const { open } = window.__TAURI__.api;
 
 window.addEventListener("DOMContentLoaded", () => {
+  // on load
   console.log("loaded");
-  change_theme(default_theme);
-  get_system_info();
 
-  // open last folder (if exists)
-  goto_last_folder();
+  get_system_info();
+  get_userdata();
 });
 
-async function goto_last_folder() {
-  const data = await invoke("get_last_folder");
-  console.log("found last folder from database");
-  console.log(data);
-  goto_folder(data);
+async function get_userdata() {
+  // get user data here, theme, last folder, etc.
+  const data = await invoke("get_userdata");
+  console.log('received userdata')
+  console.log(data)
+
+  change_theme(data.theme);
+
+  if (data.last_folder) {
+    console.log(data.last_folder);
+    goto_folder(data.last_folder);
+  }
 }
 
 async function get_system_info() {
@@ -101,7 +107,6 @@ async function goto_folder(selected_folder_path: string) {
 }
 
 const page_size = 64;
-const default_theme = "dark";
 
 function display_items(data: Folder): void {
   // hide home and show files
