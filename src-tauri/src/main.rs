@@ -5,19 +5,20 @@
 
 extern crate rusqlite;
 use lazy_static::lazy_static;
-use rusqlite::{params, Connection, OptionalExtension, Result};
+use rusqlite::{ params, Connection, OptionalExtension, Result };
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Instant;
-use sysinfo::{Disks, System};
+use sysinfo::{ Disks, System };
 use trash;
 
 lazy_static! {
-    static ref DB_CONNECTION: Mutex<Connection> =
-        Mutex::new(Connection::open("appdata.db").unwrap());
+    static ref DB_CONNECTION: Mutex<Connection> = Mutex::new(
+        Connection::open("appdata.db").unwrap()
+    );
 }
 
 fn main() {
@@ -29,19 +30,19 @@ fn main() {
     println!("Established database connection in {:.2?}", now.elapsed());
     now = Instant::now();
 
-    // this works
-    // set_userdata("theme", "light");
-
-    let _app = tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            open_folder_dialog,
-            open_file_in_default_app,
-            send_file_to_trash,
-            get_items,
-            get_userdata,
-            rename_item,
-            get_system_info
-        ])
+    let _app = tauri::Builder
+        ::default()
+        .invoke_handler(
+            tauri::generate_handler![
+                open_folder_dialog,
+                open_file_in_default_app,
+                send_file_to_trash,
+                get_items,
+                get_userdata,
+                rename_item,
+                get_system_info
+            ]
+        )
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -49,15 +50,15 @@ fn main() {
 fn set_userdata(
     conn: &Connection,
     key: &str,
-    value: &str,
+    value: &str
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // let conn = DB_CONNECTION.lock().unwrap(); // Assuming DB_CONNECTION is MutexGuard<RusqliteConnection>
-
-    match conn.execute(
-        "INSERT INTO userdata (key, value) VALUES (?1, ?2)
+    match
+        conn.execute(
+            "INSERT INTO userdata (key, value) VALUES (?1, ?2)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-        params![key, value],
-    ) {
+            params![key, value]
+        )
+    {
         Ok(_) => Ok(()),
         Err(err) => {
             // Handle the error here
@@ -74,7 +75,7 @@ fn prepare_db() -> Result<()> {
                   key TEXT PRIMARY KEY,
                   value TEXT
                   )",
-        [],
+        []
     )?;
 
     conn.execute(
@@ -89,9 +90,10 @@ fn prepare_db() -> Result<()> {
             item_type TEXT,
             size_bytes NUMBER
         );",
-        [],
+        []
     )?;
 
+    // temp
     set_userdata(&*conn, "theme", "dark");
 
     Ok(())
@@ -188,21 +190,20 @@ fn rename_item(path: String, new: String) {
 }
 
 use std::fs;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{ SystemTime, UNIX_EPOCH };
 
 #[derive(Serialize)]
 struct FileInfoStruct {
     name: String,
+    index: u64,
     created: Option<u64>,
     modified: Option<u64>,
     accessed: Option<u64>,
     path: String,
     container: String,
-    size_bytes: Option<u64>, // Use Option<u64> to represent size, as folders do not have a size
-    item_type: String,       // image, video, text, 3d model, audio, folder
-    extension: String,       // png, avif, mp3, wav, etc.
-                             // height: usize, // dimensions of file if image
-                             // width: usize,
+    size_bytes: Option<u64>,
+    item_type: String,
+    extension: String,
 }
 
 #[derive(Serialize)]
@@ -233,9 +234,7 @@ fn get_userdata_item(conn: &Connection, key: &str) -> Result<Option<String>> {
 
 #[tauri::command]
 fn get_userdata() -> Result<UserDataStruct, String> {
-    let conn = DB_CONNECTION
-        .lock()
-        .map_err(|_| "Failed to acquire DB connection".to_string())?;
+    let conn = DB_CONNECTION.lock().map_err(|_| "Failed to acquire DB connection".to_string())?;
 
     let last_folder = match get_userdata_item(&conn, "last_folder") {
         Ok(value) => value,
@@ -292,6 +291,7 @@ async fn get_items(
     sort: String,
     ascending: bool,
     walk: bool,
+    dotfiles: bool
 ) -> Result<ContainerDataStruct, String> {
     use std::fs;
 
@@ -310,22 +310,18 @@ async fn get_items(
 
     let mut now = Instant::now();
 
+    // list of files/folders
     let items = read_directory_to_vec(Path::new(&selected_folder), walk);
 
     println!("Received list of items in {:.2?}", now.elapsed());
-
     now = Instant::now();
 
     // loop through each item
     if let Ok(entries) = items {
-        for entry in entries {
+        // for every entry
+        for (index, entry) in entries.iter().enumerate() {
             // get path
-            let path = entry
-                .to_str()
-                .unwrap_or("Invalid path")
-                .to_string()
-                .replace("\\", "/"); // should implement proper error handling later
-
+            let path = entry.to_str().unwrap_or("Invalid path").to_string().replace("\\", "/"); // should implement proper error handling later
             // Prepare the SQL statement
             let mut stmt = match
                 conn.prepare(
@@ -340,32 +336,36 @@ async fn get_items(
             };
 
             // Query the row
-            match stmt.query_row(params![path], |row| {
-                let path: String = row.get(0)?;
-                let container: String = row.get(1)?;
-                let name: String = row.get(2)?;
-                let extension: String = row.get(3)?;
-                let created: Option<u64> = row.get(4)?;
-                let modified: Option<u64> = row.get(5)?;
-                let accessed: Option<u64> = row.get(6)?;
-                let item_type: String = row.get(7)?;
-                let size_bytes: Option<u64> = row.get(8)?;
+            match
+                stmt.query_row(params![path], |row| {
+                    let path: String = row.get(0)?;
+                    let container: String = row.get(1)?;
+                    let name: String = row.get(2)?;
+                    let extension: String = row.get(3)?;
+                    let created: Option<u64> = row.get(4)?;
+                    let modified: Option<u64> = row.get(5)?;
+                    let accessed: Option<u64> = row.get(6)?;
+                    let item_type: String = row.get(7)?;
+                    let size_bytes: Option<u64> = row.get(8)?;
 
-                // println!("IN DATABASE: {}", path);
+                    // println!("IN DATABASE: {}", path);
 
-                info.items.push(FileInfoStruct {
-                    name,
-                    created,
-                    modified,
-                    accessed,
-                    path,
-                    container,
-                    size_bytes,
-                    item_type,
-                    extension,
-                });
-                Ok(())
-            }) {
+                    // compile the row from the database into a struct
+                    info.items.push(FileInfoStruct {
+                        name,
+                        index: index as u64,
+                        created,
+                        modified,
+                        accessed,
+                        path,
+                        container,
+                        size_bytes,
+                        item_type,
+                        extension,
+                    });
+                    Ok(())
+                })
+            {
                 Ok(_) => {
                     continue;
                 }
@@ -427,8 +427,18 @@ async fn get_items(
             } else {
                 // is file
                 item_type = match extension.to_lowercase().as_str() {
-                    "png" | "jpg" | "jpeg" | "gif" | "bmp" | "avif" | "webp" | "svg" | "apng"
-                    | "jfif" | "tiff" | "ico" => String::from("image"), // heic is not supported by html
+                    | "png"
+                    | "jpg"
+                    | "jpeg"
+                    | "gif"
+                    | "bmp"
+                    | "avif"
+                    | "webp"
+                    | "svg"
+                    | "apng"
+                    | "jfif"
+                    | "tiff"
+                    | "ico" => String::from("image"), // heic is not supported by html
                     "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
                     "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
                     "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
@@ -482,6 +492,7 @@ async fn get_items(
 
             info.items.push(FileInfoStruct {
                 name,
+                index: index as u64,
                 created,
                 modified,
                 accessed,
@@ -502,6 +513,10 @@ async fn get_items(
     // sort
     sort_items(&mut info.items, &sort, ascending);
 
+    // for (index, item) in info.items.iter().enumerate() {
+        // info.items[index].index = index as u64
+    // }
+
     println!("Compiled metadata & sorted items {:.2?}", now.elapsed());
 
     Ok(info)
@@ -511,11 +526,7 @@ fn sort_items(folders: &mut Vec<FileInfoStruct>, sort_by: &str, ascending: bool)
     match sort_by {
         "name" => {
             folders.sort_by(|a, b| {
-                if ascending {
-                    a.name.cmp(&b.name)
-                } else {
-                    b.name.cmp(&a.name)
-                }
+                if ascending { a.name.cmp(&b.name) } else { b.name.cmp(&a.name) }
             });
         }
         "size" => {
@@ -557,10 +568,7 @@ async fn open_folder_dialog() -> Result<String, String> {
     match dialog_result {
         Some(selected_folder) => {
             // Convert the selected folder path to a string
-            let path: String = selected_folder
-                .to_string_lossy()
-                .to_string()
-                .replace("\\", "/");
+            let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
             Ok(path)
         }
         None => {
@@ -572,7 +580,7 @@ async fn open_folder_dialog() -> Result<String, String> {
 
 extern crate chrono;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{ DateTime, NaiveDateTime, Utc };
 
 fn format_timestamp(ms_since_epoch: Option<u64>) -> String {
     match ms_since_epoch {

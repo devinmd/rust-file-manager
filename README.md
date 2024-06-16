@@ -4,7 +4,6 @@ File manager made with Rust & Tauri
 
 ## Todo
 
-- store user data (themes, etc.)
 - get size of folders -- too slow
 - add more info to bottom bar
 - left sidebar with favorites

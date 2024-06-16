@@ -18,8 +18,8 @@ window.addEventListener("DOMContentLoaded", () => {
 async function get_userdata() {
   // get user data here, theme, last folder, etc.
   const data = await invoke("get_userdata");
-  console.log('received userdata')
-  console.log(data)
+  console.log("received userdata");
+  console.log(data);
 
   change_theme(data.theme);
 
@@ -61,6 +61,13 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   }
 });
 
+document.getElementById("checkbox-hide-text")?.addEventListener("click", async () => {
+  // refresh
+  try {
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
 document.getElementById("sort")?.addEventListener("input", async () => {
   // user changed sort
   try {
@@ -93,6 +100,7 @@ async function goto_folder(selected_folder_path: string) {
     sort: sort[0],
     ascending: /true/i.test(sort[1]),
     walk: walk,
+    dotfiles: false,
   });
 
   (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
@@ -101,7 +109,7 @@ async function goto_folder(selected_folder_path: string) {
 
   console.log("data:");
   console.log(data);
-  selectedItemIndex = -1;
+  selectedItem.index = -1;
   display_items(data);
   console.log(`Retrieved data and displayed items in ${Date.now() - startTime}ms`);
 }
@@ -112,9 +120,6 @@ function display_items(data: Folder): void {
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: flex;");
-
-  // remove dotfiles from file list
-  data.items = data.items.filter((obj) => !obj.name.startsWith("."));
 
   // clear grid
   const grid = document.querySelector("#items");
@@ -159,31 +164,48 @@ function display_items(data: Folder): void {
   load_more.innerHTML = "Load More";
   load_more.id = "btn-load-more";
   load_more.onclick = function () {
-    display_page(data.items, page_size, page_size * (current_page + 1));
     current_page += 1;
+    display_page(data.items, page_size, page_size * current_page);
   };
 
   // display files
+  let current_page: number = 0;
   display_page(data.items, page_size, 0);
-  let current_page = 0;
 
   function display_page(items: Item[], amount: number, offset: number) {
     let clone = items.slice(0);
     let spliced = clone.splice(offset, amount);
     load_more.remove();
 
-    for (let i in spliced) {
+    for (let i = 0; i < spliced.length; i++) {
       const item = spliced[i];
       const item_container = document.createElement("button");
-      const item_name = document.createElement("p");
-      item_name.innerHTML = item.name;
-      item_name.className = "name";
-      const item_size = document.createElement("p");
-      item_size.innerHTML = formatBytes(item.size_bytes);
-      item_size.className = "size";
+      const page_num = current_page;
+      let thumbnail = document.createElement("div");
+      thumbnail.className = "thumbnail";
+      thumbnail.append(generate_item_preview(item));
+      item_container.append(thumbnail);
+      if (
+        (document.querySelector("#checkbox-hide-text") as HTMLInputElement).checked &&
+        (item.item_type == "image" || item.item_type == "video")
+      ) {
+        // if checked and is an image or video
+      } else {
+        // if unchecked OR is NOT an image or video
+        const item_name = document.createElement("p");
+        item_name.innerHTML = item.name;
+        item_name.className = "name";
+        const item_size = document.createElement("p");
+        item_size.innerHTML = formatBytes(item.size_bytes);
+        item_size.className = "size";
+        item_container.append(item_name, item_size);
+      }
+
       item_container.onclick = function () {
-        select_item(item, item_container, parseInt(i));
+        // TODO: FIX THIS
+        select_item(item, item_container, page_num * page_size + i);
       };
+
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
           goto_folder(item.path);
@@ -191,10 +213,7 @@ function display_items(data: Folder): void {
           invoke("open_file_in_default_app", { path: item.path });
         }
       };
-      let thumbnail = document.createElement("div");
-      thumbnail.className = "thumbnail";
-      thumbnail.append(generate_item_preview(item));
-      item_container.append(thumbnail, item_name, item_size);
+
       grid.appendChild(item_container);
     }
     if (amount * (offset / amount + 1) < items.length) {
@@ -207,6 +226,7 @@ function display_items(data: Folder): void {
 
 interface Item {
   item_type: string;
+  index: number;
   path: string;
   name: string;
   size_bytes: number;
@@ -225,7 +245,7 @@ interface Folder {
   path: string;
 }
 
-var selectedItemIndex = -1;
+var selectedItem = { index: -1, path: "" };
 
 function select_item(item: Item, item_container: HTMLButtonElement, index: number): void {
   // add active class
@@ -233,7 +253,9 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   item_container.classList.add("active");
   // remove active class from all other items
 
-  selectedItemIndex = index;
+  selectedItem.index = index;
+  selectedItem.path = item.path
+  console.log(index);
 
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
@@ -284,18 +306,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const btn_delete = document.createElement("button");
   btn_delete.innerHTML = "Delete";
   btn_delete.onclick = function () {
-    invoke("send_file_to_trash", { path: item.path })
-      .then(() => {
-        console.log("File deleted successfully");
-        // delete the item from file list
-        item_container.remove();
-        selectedItemIndex -= 1;
-        nextItem();
-      })
-      .catch((err: Error) => {
-        console.error(err);
-        alert("error deleting file");
-      });
+    deleteItem(item.path);
   };
   // const rename_input = document.createElement("input");
   // rename_input.type = "text";
@@ -322,6 +333,24 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   sidebar.append(generate_item_preview(item, true), info, actions);
 }
 
+function deleteItem(path: String) {
+  invoke("send_file_to_trash", { path: path })
+    .then(() => {
+      console.log(`${path} deleted`);
+      // delete the item from file list
+      // small delay on the removing because it waits for the send file to trash
+      console.log(selectedItem.index);
+      console.log(document.querySelectorAll("#items button")[selectedItem.index]);
+      document.querySelectorAll("#items button")[selectedItem.index].remove();
+      selectedItem.index -= 1;
+      nextItem();
+    })
+    .catch((err: Error) => {
+      console.error(err);
+      alert(`error deleting ${path}`);
+    });
+}
+
 // navigate selected item with arrow keys
 const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
@@ -343,6 +372,23 @@ const keyPress = (event: KeyboardEvent) => {
       event.preventDefault();
       event.stopPropagation();
       break;
+    case "Backspace":
+      if (event.ctrlKey || event.metaKey) {
+        // ctrl + delete
+        event.preventDefault();
+        event.stopPropagation();
+        deleteItem(selectedItem.path);
+      }
+      break;
+    case "r":
+      if (event.ctrlKey || event.metaKey) {
+        // ctrl + r
+        event.preventDefault();
+        event.stopPropagation();
+        // reload
+        location.reload();
+      }
+      break;
     default:
       break;
   }
@@ -352,20 +398,20 @@ document.addEventListener("keydown", keyPress);
 
 function openItem() {
   let itemList = document.querySelector("#items").children;
-  let item = itemList[selectedItemIndex] as HTMLButtonElement;
+  let item = itemList[selectedItem.index] as HTMLButtonElement;
   item.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
 }
 
 function nextItem() {
   let itemList = document.querySelector("#items").children;
-  let nextItem = itemList[selectedItemIndex + 1] as HTMLButtonElement;
-  if (nextItem) nextItem.click();
+  let nextItemElem = itemList[selectedItem.index + 1] as HTMLButtonElement;
+  if (nextItemElem) nextItemElem.click();
 }
 
 function previousItem() {
   let itemList = document.querySelector("#items").children;
-  let previousItem = itemList[selectedItemIndex - 1] as HTMLButtonElement;
-  if (previousItem) previousItem.click();
+  let previousItemElem = itemList[selectedItem.index - 1] as HTMLButtonElement;
+  if (previousItemElem) previousItemElem.click();
 }
 
 function generate_item_preview(
