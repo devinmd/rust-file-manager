@@ -196,6 +196,8 @@ div#content div#selected-file {
 div#content div#selected-file img,
 div#content div#selected-file video {
   border-radius: 8px;
+  object-fit: contain;
+  max-height: 50%;
 }
 
 div#content div#selected-file div#actions {
@@ -243,8 +245,7 @@ div#content div#selected-file div#info p span {
   text-align: center;
 }
 
-div#checkbox-walk-container input,
-div#checkbox-hide-text-container input {
+div.chk-container input {
   opacity: 0;
   height: 24px;
   margin: 0;
@@ -253,29 +254,25 @@ div#checkbox-hide-text-container input {
   z-index: 2;
 }
 
-div#checkbox-walk-container,
-div#checkbox-hide-text-container {
+div.chk-container {
   position: relative;
   width: 32px;
   height: 24px;
 }
 
-div#checkbox-walk-container {
+div#chk-walk-container {
   margin-left: auto;
 }
 
-div#checkbox-walk-container input:checked:hover + span.checkmark,
-div#checkbox-hide-text-container input:checked:hover + span.checkmark {
+div.chk-container input:checked:hover + span.checkmark {
   background-color: var(--bg-2);
 }
 
-div#checkbox-walk-container input:hover + span.checkmark,
-div#checkbox-hide-text-container input:hover + span.checkmark {
+div.chk-container input:hover + span.checkmark {
   background-color: var(--bg-1);
 }
 
-div#checkbox-walk-container span.checkmark,
-div#checkbox-hide-text-container span.checkmark {
+div.chk-container span.checkmark {
   width: 32px;
   height: 24px;
   position: absolute;
@@ -290,20 +287,29 @@ div#checkbox-hide-text-container span.checkmark {
   pointer-events: none;
 }
 
-div#checkbox-hide-text-container span.checkmark {
+div#chk-hide-text-container span.checkmark {
   background-image: url("./assets/show_text.svg");
 }
 
-div#checkbox-hide-text-container input:checked + span.checkmark {
+div#chk-hide-text-container input:checked + span.checkmark {
   background-image: url("./assets/hide_text.svg");
   background-color: var(--bg-1);
 }
 
-div#checkbox-walk-container span.checkmark {
+div#chk-walk-container span.checkmark {
   background-image: url("./assets/recursive_disabled.svg");
 }
 
-div#checkbox-walk-container input:checked + span.checkmark {
+div#chk-walk-container input:checked + span.checkmark {
   background-image: url("./assets/recursive_enabled.svg");
+  background-color: var(--bg-1);
+}
+
+div#chk-show-thumbnails-container span.checkmark {
+  background-image: url("./assets/file.svg");
+}
+
+div#chk-show-thumbnails-container input:checked + span.checkmark {
+  background-image: url("./assets/thumbnail.svg");
   background-color: var(--bg-1);
 }

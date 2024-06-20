@@ -195,7 +195,6 @@ use std::time::{ SystemTime, UNIX_EPOCH };
 #[derive(Serialize)]
 struct FileInfoStruct {
     name: String,
-    index: u64,
     created: Option<u64>,
     modified: Option<u64>,
     accessed: Option<u64>,
@@ -353,7 +352,6 @@ async fn get_items(
                     // compile the row from the database into a struct
                     info.items.push(FileInfoStruct {
                         name,
-                        index: index as u64,
                         created,
                         modified,
                         accessed,
@@ -492,7 +490,6 @@ async fn get_items(
 
             info.items.push(FileInfoStruct {
                 name,
-                index: index as u64,
                 created,
                 modified,
                 accessed,
@@ -512,10 +509,6 @@ async fn get_items(
 
     // sort
     sort_items(&mut info.items, &sort, ascending);
-
-    // for (index, item) in info.items.iter().enumerate() {
-        // info.items[index].index = index as u64
-    // }
 
     println!("Compiled metadata & sorted items {:.2?}", now.elapsed());
 

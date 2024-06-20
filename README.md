@@ -12,11 +12,11 @@ DATABASE
 - skip the fetching files step and can just query database
 
 FIXES
-- arrow keys don't work on folders that require pagination
+- deleting a file messes up the indexes because it shifts everything by skipping over one, this breaks the query selectors, only a visual bug though
 
 FEATURES
 - search
-- back & forward buttons
+- back & forward btns
 - rename folders & files
 - tags and custom metadata
 - favorite files & folders
@@ -57,5 +57,5 @@ BACKBURNER
   - video duration
   - audio file duration
   - camera info
-- "open with" button
+- "open with" btn
   - vscode, paint.net, photoshop, notepad, photos, web browser, etc.

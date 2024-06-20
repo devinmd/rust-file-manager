@@ -61,7 +61,13 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   }
 });
 
-document.getElementById("checkbox-hide-text")?.addEventListener("click", async () => {
+document.getElementById("chk-hide-text")?.addEventListener("click", async () => {
+  // refresh
+  try {
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+document.getElementById("chk-show-thumbnails")?.addEventListener("click", async () => {
   // refresh
   try {
     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
@@ -75,7 +81,7 @@ document.getElementById("sort")?.addEventListener("input", async () => {
   } catch {}
 });
 
-document.getElementById("checkbox-walk")?.addEventListener("input", async () => {
+document.getElementById("chk-walk")?.addEventListener("input", async () => {
   // user changed sort
   try {
     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
@@ -91,7 +97,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 async function goto_folder(selected_folder_path: string) {
   const startTime = new Date().getTime();
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
-  const walk = (document.querySelector("#checkbox-walk") as HTMLInputElement).checked;
+  const walk = (document.querySelector("#chk-walk") as HTMLInputElement).checked;
   console.log("sort:");
   console.log(sort);
   console.log(selected_folder_path);
@@ -104,7 +110,7 @@ async function goto_folder(selected_folder_path: string) {
   });
 
   (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
-    goto_folder(selected_folder_path);
+      goto_folder(selected_folder_path);
   };
 
   console.log("data:");
@@ -125,7 +131,7 @@ function display_items(data: Folder): void {
   const grid = document.querySelector("#items");
   grid.innerHTML = "";
 
-  // make path buttons
+  // make path btns
   const vec = data.path.split("/");
   console.log("path:");
   vec[0] = "";
@@ -177,16 +183,22 @@ function display_items(data: Folder): void {
     let spliced = clone.splice(offset, amount);
     load_more.remove();
 
+    let thumbnails: boolean = (document.querySelector("#chk-show-thumbnails") as HTMLInputElement).checked;
+
     for (let i = 0; i < spliced.length; i++) {
       const item = spliced[i];
-      const item_container = document.createElement("button");
+      const item_container = document.createElement("button") as HTMLButtonElement;
       const page_num = current_page;
       let thumbnail = document.createElement("div");
       thumbnail.className = "thumbnail";
-      thumbnail.append(generate_item_preview(item));
+      if(thumbnails){
+        thumbnail.append(generate_item_preview(item));
+      }else {
+        thumbnail.append()
+      }
       item_container.append(thumbnail);
       if (
-        (document.querySelector("#checkbox-hide-text") as HTMLInputElement).checked &&
+        (document.querySelector("#chk-hide-text") as HTMLInputElement).checked &&
         (item.item_type == "image" || item.item_type == "video")
       ) {
         // if checked and is an image or video
@@ -254,7 +266,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   // remove active class from all other items
 
   selectedItem.index = index;
-  selectedItem.path = item.path
+  selectedItem.path = item.path;
   console.log(index);
 
   const sidebar = document.querySelector("#selected-file");
@@ -302,7 +314,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
 
   info.append(...toAppend);
 
-  // buttons
+  // btns
   const btn_delete = document.createElement("button");
   btn_delete.innerHTML = "Delete";
   btn_delete.onclick = function () {
@@ -472,7 +484,6 @@ function generate_item_preview(
       elem.src = convertFileSrc(item.path);
       break;
     case "video":
-      elem = document.createElement("img") as HTMLImageElement;
       elem = document.createElement("video");
       elem.controls = video_controls;
       elem.src = convertFileSrc(item.path);
