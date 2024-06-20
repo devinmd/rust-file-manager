@@ -255,7 +255,7 @@ fn get_userdata() -> Result<UserDataStruct, String> {
 
 use walkdir::WalkDir;
 
-fn read_directory_to_vec(selected_folder: &Path, walk: bool) -> Result<Vec<PathBuf>, String> {
+fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> Result<Vec<PathBuf>, String> {
     if walk {
         // Use WalkDir to recursively collect all files and exclude directories
         let entries: Vec<PathBuf> = WalkDir::new(selected_folder)
@@ -263,6 +263,7 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool) -> Result<Vec<PathB
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
             .map(|entry| entry.into_path()) // Convert DirEntry to PathBuf
             .filter(|path| path.is_file()) // Only keep files
+            .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
             .collect();
         Ok(entries)
     } else {
@@ -278,6 +279,7 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool) -> Result<Vec<PathB
         let vec: Vec<PathBuf> = entries
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
             .map(|entry| entry.path()) // Convert DirEntry to PathBuf
+            .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
             .collect();
 
         Ok(vec)
@@ -310,7 +312,7 @@ async fn get_items(
     let mut now = Instant::now();
 
     // list of files/folders
-    let items = read_directory_to_vec(Path::new(&selected_folder), walk);
+    let items = read_directory_to_vec(Path::new(&selected_folder), walk, dotfiles);
 
     println!("Received list of items in {:.2?}", now.elapsed());
     now = Instant::now();
