@@ -255,13 +255,24 @@ fn get_userdata() -> Result<UserDataStruct, String> {
 
 use walkdir::WalkDir;
 
+// Helper function to strip the "\\?\" prefix if it exists (Windows specific)
+fn strip_prefix(path: &Path) -> PathBuf {
+    let path_str = path.to_str().unwrap_or_default();
+    if cfg!(windows) && path_str.starts_with(r"\\?\") {
+        PathBuf::from(&path_str[4..])
+    } else {
+        path.to_path_buf()
+    }
+}
+
 fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> Result<Vec<PathBuf>, String> {
     if walk {
         // Use WalkDir to recursively collect all files and exclude directories
         let entries: Vec<PathBuf> = WalkDir::new(selected_folder)
             .into_iter()
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
-            .map(|entry| entry.into_path()) // Convert DirEntry to PathBuf
+            .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
+            .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
             .filter(|path| path.is_file()) // Only keep files
             .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
             .collect();
@@ -278,7 +289,8 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> 
 
         let vec: Vec<PathBuf> = entries
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
-            .map(|entry| entry.path()) // Convert DirEntry to PathBuf
+            .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
+            .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
             .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
             .collect();
 
@@ -323,6 +335,7 @@ async fn get_items(
         for (index, entry) in entries.iter().enumerate() {
             // get path
             let path = entry.to_str().unwrap_or("Invalid path").to_string().replace("\\", "/"); // should implement proper error handling later
+            println!("{}", path);
             // Prepare the SQL statement
             let mut stmt = match
                 conn.prepare(
@@ -564,6 +577,7 @@ async fn open_folder_dialog() -> Result<String, String> {
         Some(selected_folder) => {
             // Convert the selected folder path to a string
             let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
+            println!("{}", path);
             Ok(path)
         }
         None => {

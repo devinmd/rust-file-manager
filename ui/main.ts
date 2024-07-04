@@ -110,7 +110,7 @@ async function goto_folder(selected_folder_path: string) {
   });
 
   (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
-      goto_folder(selected_folder_path);
+    goto_folder(selected_folder_path);
   };
 
   console.log("data:");
@@ -191,10 +191,10 @@ function display_items(data: Folder): void {
       const page_num = current_page;
       let thumbnail = document.createElement("div");
       thumbnail.className = "thumbnail";
-      if(thumbnails){
+      if (thumbnails) {
         thumbnail.append(generate_item_preview(item));
-      }else {
-        thumbnail.append()
+      } else {
+        thumbnail.append();
       }
       item_container.append(thumbnail);
       if (
@@ -447,6 +447,9 @@ function generate_item_preview(
           break;
         case "videos":
           elem.src = "ui/assets/folders/videos.svg";
+          break;
+        case "sync":
+          elem.src = "ui/assets/folders/sync.svg";
           break;
         case "movies":
         case "films":
