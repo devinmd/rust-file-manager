@@ -26,7 +26,7 @@ body {
 }
 
 * {
-  font-family: "Roboto";
+  font-family: "Roboto", sans-serif;
 }
 
 img,
@@ -92,17 +92,49 @@ button {
   color: var(--text);
   font-size: 12px;
   height: 24px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   background-color: var(--bg-1);
   padding: 0 16px;
   cursor: pointer;
   font-weight: 400;
   color: var(--text);
+  transition: 80ms;
 }
 
 button:hover {
   background-color: var(--bg-2);
+}
+
+button.clear {
+  background-color: transparent;
+  text-align: left;
+}
+
+button.clear:hover {
+  background-color: var(--bg-1);
+}
+
+button.icon {
+  text-align: left;
+  background-position: 8px, 3px;
+  background-size: 18px;
+  background-repeat: no-repeat;
+  padding-left: 32px;
+}
+
+button.icon-center {
+  display: flex;
+  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+button.icon-center img {
+  height: 16px;
+  max-height: 100% !important;
+  width: auto;
 }
 
 select {

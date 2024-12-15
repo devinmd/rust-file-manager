@@ -8,6 +8,7 @@
 	<script type="module" src="/ui/main.ts" defer></script>
 	<link rel="stylesheet" href="/ui/styles.css" />
 	<link rel="stylesheet" href="/ui/main.css" />
+	<link rel="stylesheet" href="/ui/files.css" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
@@ -16,54 +17,71 @@
 <body>
 
 	<div id="app">
-		<div id="container">
-			<div id="top-bar">
-				<button id="btn-home">Home</button>
-				<button id="btn-openfolder">Open Folder</button>
-				<button id="btn-refresh">Refresh</button>
-				<div id="path"></div>
-				<div id="chk-walk-container" class="chk-container">
-					<input type="checkbox" id="chk-walk">
-					<span class="checkmark"></span>
-				</div>
-				<div id="chk-hide-text-container" class="chk-container">
-					<input type="checkbox" id="chk-hide-text">
-					<span class="checkmark"></span>
-				</div>
-				<div id="chk-show-thumbnails-container" class="chk-container">
-					<input type="checkbox" id="chk-show-thumbnails">
-					<span class="checkmark"></span>
-				</div>
-				<select id="sort">
-					<option value="created_false">Date created descending (New to old)</option>
-					<option value="created_true">Date created ascending (Old to new)</option>
-					<option value="name_true">Name ascending (A-Z)</option>
-					<option value="name_false">Name descending (Z-A)</option>
-					<option value="size_false">Size descending (big to small)</option>
-					<option value="size_true">Size ascending (small to big)</option>
-				</select>
+		<div id="top-bar">
+			<button id="btn-home">Home</button>
+			<button id="btn-openfolder">Open Folder</button>
+			<button id="btn-refresh">Refresh</button>
+			<div id="path"></div>
+			<div id="chk-walk-container" class="chk-container">
+				<input type="checkbox" id="chk-walk">
+				<span class="checkmark"></span>
 			</div>
-
-			<div id="home">
-				<h1 id="greeting"></h1>
-				<h4>Drives</h4>
-				<div id="drives"></div>
-				<h4>Locations</h4>
-				<div id="locations"></div>
-				<h4>Favorites</h4>
-				<h4>Recents</h4>
+			<div id="chk-hide-text-container" class="chk-container">
+				<input type="checkbox" id="chk-hide-text">
+				<span class="checkmark"></span>
 			</div>
-
-			<div id="content">
-				<div id="items"></div>
-				<div id="selected-file"></div>
+			<div id="chk-show-thumbnails-container" class="chk-container">
+				<input type="checkbox" id="chk-show-thumbnails">
+				<span class="checkmark"></span>
 			</div>
-
-			<div id="bottom-bar">
-				<p id="current-folder-info"></p>
-			</div>
-
+			<select id="sort">
+				<option value="created_false">Date created new to old</option>
+				<option value="created_true">Date created old to new</option>
+				<option value="name_true">Name A-Z</option>
+				<option value="name_false">Name Z-A</option>
+				<option value="size_false">Size large to small</option>
+				<option value="size_true">Size small to big</option>
+			</select>
 		</div>
+
+		<div id="home">
+			<h1 id="greeting"></h1>
+			<h4>Drives</h4>
+			<div id="drives"></div>
+			<h4>Locations</h4>
+			<div id="locations"></div>
+			<h4>Favorites</h4>
+			<h4>Recents</h4>
+		</div>
+
+		<div id="content">
+			<div id="sidenav">
+				<div id="sidenav-buttons">
+					<div>
+						<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
+						<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Search</button>
+					</div>
+					<p>Favorites</p>
+					<div>
+						<button class="icon clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
+						<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
+						<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
+					</div>
+					<p>Drives</p>
+					<div></div>
+					<p>Recent</p>
+					<div></div>
+				</div>
+
+			</div>
+			<div id="items"></div>
+			<div id="selected-file"></div>
+		</div>
+
+		<div id="bottom-bar">
+			<p id="current-folder-info"></p>
+		</div>
+
 	</div>
 
 </body>

@@ -279,7 +279,7 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> 
         Ok(entries)
     } else {
         // Use fs::read_dir for a non-recursive directory listing
-        println!("{}", selected_folder.display());
+        println!("selected folder path: {}", selected_folder.display());
         let entries: fs::ReadDir = match fs::read_dir(selected_folder) {
             Ok(entries) => entries,
             Err(_) => {
@@ -575,6 +575,7 @@ async fn open_folder_dialog() -> Result<String, String> {
 
     match dialog_result {
         Some(selected_folder) => {
+            // user selected a folder to open
             // Convert the selected folder path to a string
             let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
             println!("{}", path);

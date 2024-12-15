@@ -1,0 +1,228 @@
+
+
+div#content {
+  display: flex;
+  flex-direction: row;
+  display: none;
+}
+
+div#content div#items {
+  padding: 32px;
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  height: calc(100vh - 128px);
+  grid-auto-rows: min-content;
+  overflow-y: auto;
+  gap: 8px;
+  justify-content: start;
+
+}
+
+div#content div#items button {
+  display: flex;
+  flex-direction: column;
+  max-width: 180px;
+  background-color: transparent;
+  gap: 8px;
+  padding: 8px;
+  cursor: default;
+  justify-content: start;
+  height: fit-content;
+  align-items: center;
+  transition: 80ms;
+}
+
+div#content div#items button div.thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+div#content div#items button div.thumbnail img,
+div#content div#items button div.thumbnail video {
+  /* width: auto; */
+  /* height: auto; */
+  border-radius: 4px;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  height: 100%;
+  object-fit: contain;
+}
+
+div#content div#items button#btn-load-more {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+div#content div#items button.active {
+  background-color: var(--bg-2);
+}
+div#content div#items button.active p {
+  font-weight: 700;
+}
+
+div#content div#items button.active:hover {
+  background-color: var(--bg-2);
+}
+
+div#content div#items button:hover {
+  background-color: var(--bg-1);
+  /* outline: 2px solid blue; */
+}
+
+div#content div#items button p {
+  text-align: center;
+}
+
+div#content div#items button p.size {
+  color: var(--text-2);
+}
+
+div#content div#items button p.name {
+  color: var(--text);
+}
+
+div#content div#selected-file {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+  overflow-y: auto;
+  border-left: 1px solid var(--bg-1);
+  padding: 16px;
+  min-width: 30%;
+  max-width: 30%;
+  justify-content: start;
+}
+
+div#content div#selected-file img,
+div#content div#selected-file video {
+  border-radius: 8px;
+  object-fit: contain;
+  max-height: 50%;
+}
+
+div#content div#selected-file div#actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+div#content div#selected-file div#actions button {
+  flex-grow: 1;
+}
+
+div#content div#selected-file div#actions button:hover {
+  background-color: var(--bg-2);
+}
+
+div#content div#selected-file div#info {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+div#content div#selected-file div#info p#item-name {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+div#content div#selected-file div#info p {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+div#content div#selected-file div#info p span {
+  float: right;
+  color: var(--text-1);
+}
+
+.empty-folder-text {
+  font-weight: 500;
+  color: var(--text-2);
+  text-align: center;
+}
+
+div.chk-container input {
+  opacity: 0;
+  height: 24px;
+  margin: 0;
+  width: 32px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+div.chk-container {
+  position: relative;
+  width: 32px;
+  height: 24px;
+}
+
+div#chk-walk-container {
+  margin-left: auto;
+}
+
+div.chk-container input:checked:hover + span.checkmark {
+  background-color: var(--bg-2);
+}
+
+div.chk-container input:hover + span.checkmark {
+  background-color: var(--bg-1);
+}
+
+div.chk-container span.checkmark {
+  width: 32px;
+  height: 24px;
+  position: absolute;
+  top: 0;
+  border-radius: 4px;
+  left: 0;
+  background-position: center;
+  background-size: 60%;
+  background-repeat: no-repeat;
+  background-color: var(--bg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+div#chk-hide-text-container span.checkmark {
+  background-image: url("./assets/show_text.svg");
+}
+
+div#chk-hide-text-container input:checked + span.checkmark {
+  background-image: url("./assets/hide_text.svg");
+  background-color: var(--bg-1);
+}
+
+div#chk-walk-container span.checkmark {
+  background-image: url("./assets/recursive_disabled.svg");
+}
+
+div#chk-walk-container input:checked + span.checkmark {
+  background-image: url("./assets/recursive_enabled.svg");
+  background-color: var(--bg-1);
+}
+
+div#chk-show-thumbnails-container span.checkmark {
+  background-image: url("./assets/file.svg");
+}
+
+div#chk-show-thumbnails-container input:checked + span.checkmark {
+  background-image: url("./assets/thumbnail.svg");
+  background-color: var(--bg-1);
+}

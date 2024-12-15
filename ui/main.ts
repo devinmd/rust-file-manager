@@ -134,7 +134,7 @@ function display_items(data: Folder): void {
   // make path btns
   const vec = data.path.split("/");
   console.log("path:");
-  vec[0] = "";
+  vec[0] = "/"; // set the first path to "/" this is for mac, need to test on windows, windows is probably C:/
   console.log(vec);
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
@@ -142,7 +142,7 @@ function display_items(data: Folder): void {
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;
-      goto_folder(vec.join("/"));
+      goto_folder(vec.join("/").replace("//", "/"));
     };
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
@@ -316,7 +316,8 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
 
   // btns
   const btn_delete = document.createElement("button");
-  btn_delete.innerHTML = "Delete";
+  btn_delete.className = "icon-center";
+  btn_delete.innerHTML = "<img src='./ui/assets/trash.svg'>Delete";
   btn_delete.onclick = function () {
     deleteItem(item.path);
   };
@@ -325,15 +326,18 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   // rename_input.placeholder = "New Name";
   // rename_input.value = item.name;
   const btn_rename = document.createElement("button");
-  btn_rename.innerHTML = "Rename";
+  btn_rename.className = "icon-center";
+  btn_rename.innerHTML = "<img src='./ui/assets/rename.svg'>Rename";
   const btn_favorite = document.createElement("button");
-  btn_favorite.innerHTML = "Favorite";
+  btn_favorite.className = "icon-center";
+  btn_favorite.innerHTML = "<img src='./ui/assets/heart.svg'>Favorite";
   // btn_rename.onclick = function () {
   // const new_name = rename_input.value;
   // invoke("rename_item", { path: item.path, new: item.path + "test" });
   // };
   const btn_open = document.createElement("button");
-  btn_open.innerHTML = "Open";
+  btn_open.className = "icon-center";
+  btn_open.innerHTML = "<img src='./ui/assets/open.svg'>Open";
   btn_open.onclick = function () {
     invoke("open_file_in_default_app", { path: item.path });
   };
