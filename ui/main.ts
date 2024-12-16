@@ -93,7 +93,6 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
   document.querySelector("#home").setAttribute("style", "display: flex;");
   document.querySelector("#items").setAttribute("style", "display: none;");
   document.querySelector("#selected-file").setAttribute("style", "display: none;");
-
 });
 
 async function goto_folder(selected_folder_path: string) {
@@ -137,12 +136,14 @@ function display_items(data: Folder): void {
   // make path btns
   const vec = data.path.split("/");
   console.log("path:");
-  vec[0] = "/"; // set the first path to "/" this is for mac, need to test on windows, windows is probably C:/
+  vec[0] = "/";
+  // vec[1] = ""
   console.log(vec);
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
+    if (vec[i] == "" || i == 0 || i == 1) continue;
     let btn = document.createElement("button");
-    btn.className = 'clear '
+    btn.className = "clear ";
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;
@@ -151,11 +152,12 @@ function display_items(data: Folder): void {
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
     caret.src = "ui/assets/caret.svg";
-    if (i == 0) {
+
+    if (i == 0 || vec[i - 1] == "" || i==1 || i==0 || i==2) {
       document.querySelector("#path").append(btn);
-      continue;
+    } else {
+      document.querySelector("#path").append(caret, btn);
     }
-    document.querySelector("#path").append(caret, btn);
   }
 
   // show file count

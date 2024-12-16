@@ -97,10 +97,11 @@ div#content div#items button p.name {
 div#content div#selected-file {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 96px);
+  height: calc(100vh - 128px);
   overflow-y: auto;
   border-left: 1px solid var(--bg-1);
   padding: 32px;
+  /* box-sizing: border-box; */
   min-width: 30%;
   max-width: 30%;
   justify-content: start;

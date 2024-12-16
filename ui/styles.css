@@ -12,7 +12,7 @@
 #content {
   display: flex;
   flex-direction: row;
-  max-height: calc(100vh - 37px - 25px);
+  height: calc(100vh - 37px - 25px);
 }
 
 #sidenav {
@@ -108,4 +108,6 @@
   align-items: center;
   padding-left: 8px;
   border-top: 1px solid var(--bg-1);
+z-index: 100;
 }
+

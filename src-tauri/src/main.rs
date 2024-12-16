@@ -81,13 +81,9 @@ fn prepare_db() -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS files (
             path TEXT UNIQUE,
-            container TEXT,
-            name TEXT,
-            extension TEXT,
             created NUMBER,
             modified NUMBER,
             accessed NUMBER,
-            item_type TEXT,
             size_bytes NUMBER
         );",
         []
@@ -265,7 +261,11 @@ fn strip_prefix(path: &Path) -> PathBuf {
     }
 }
 
-fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> Result<Vec<PathBuf>, String> {
+fn read_directory_to_vec(
+    selected_folder: &Path,
+    walk: bool,
+    dotfiles: bool
+) -> Result<Vec<PathBuf>, String> {
     if walk {
         // Use WalkDir to recursively collect all files and exclude directories
         let entries: Vec<PathBuf> = WalkDir::new(selected_folder)
@@ -274,12 +274,19 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> 
             .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
             .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
             .filter(|path| path.is_file()) // Only keep files
-            .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
+            .filter(
+                |path|
+                    dotfiles ||
+                    !path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .map_or(false, |name| name.starts_with('.'))
+            ) // Exclude dotfiles if dotfiles is false
             .collect();
         Ok(entries)
     } else {
         // Use fs::read_dir for a non-recursive directory listing
-        println!("selected folder path: {}", selected_folder.display());
+        println!("SELECTED FOLDER: {}", selected_folder.display());
         let entries: fs::ReadDir = match fs::read_dir(selected_folder) {
             Ok(entries) => entries,
             Err(_) => {
@@ -291,7 +298,14 @@ fn read_directory_to_vec(selected_folder: &Path, walk: bool, dotfiles: bool) -> 
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
             .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
             .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
-            .filter(|path| dotfiles || !path.file_name().and_then(|name| name.to_str()).map_or(false, |name| name.starts_with('.'))) // Exclude dotfiles if dotfiles is false
+            .filter(
+                |path|
+                    dotfiles ||
+                    !path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .map_or(false, |name| name.starts_with('.'))
+            ) // Exclude dotfiles if dotfiles is false
             .collect();
 
         Ok(vec)
@@ -326,20 +340,21 @@ async fn get_items(
     // list of files/folders
     let items = read_directory_to_vec(Path::new(&selected_folder), walk, dotfiles);
 
-    println!("Received list of items in {:.2?}", now.elapsed());
+    println!("RECEIVED LIST OF ITEMS IN {:.2?}", now.elapsed());
     now = Instant::now();
 
-    // loop through each item
+    // loop through each item found in that folder:
     if let Ok(entries) = items {
-        // for every entry
+        // for every entry:
         for (index, entry) in entries.iter().enumerate() {
-            // get path
+            // get path:
             let path = entry.to_str().unwrap_or("Invalid path").to_string().replace("\\", "/"); // should implement proper error handling later
-            println!("{}", path);
-            // Prepare the SQL statement
+            // println!("{}", path);
+
+            // Prepare the SQL query
             let mut stmt = match
                 conn.prepare(
-                    "SELECT path, container, name, extension, created, modified, accessed, item_type, size_bytes FROM files WHERE path = ?1"
+                    "SELECT path, created, modified, accessed, size_bytes FROM files WHERE path = ?1"
                 )
             {
                 Ok(statement) => statement,
@@ -353,16 +368,56 @@ async fn get_items(
             match
                 stmt.query_row(params![path], |row| {
                     let path: String = row.get(0)?;
-                    let container: String = row.get(1)?;
-                    let name: String = row.get(2)?;
-                    let extension: String = row.get(3)?;
-                    let created: Option<u64> = row.get(4)?;
-                    let modified: Option<u64> = row.get(5)?;
-                    let accessed: Option<u64> = row.get(6)?;
-                    let item_type: String = row.get(7)?;
-                    let size_bytes: Option<u64> = row.get(8)?;
+                    let created: Option<u64> = row.get(1)?;
+                    let modified: Option<u64> = row.get(2)?;
+                    let accessed: Option<u64> = row.get(3)?;
+                    let size_bytes: Option<u64> = row.get(4)?;
 
-                    // println!("IN DATABASE: {}", path);
+                    // Extract the container (parent directory) as a string
+                    // splits before the last "/"
+                    let container = if let Some(pos) = path.rfind('/') {
+                        path[..pos].to_string()
+                    } else {
+                        "".to_string()
+                    };
+
+                    // Extract the file name (e.g., "img_10.jpg")
+                    // splits the string at the last "/"
+                    let name = if let Some(pos) = path.rfind('/') {
+                        path[pos + 1..].to_string()
+                    } else {
+                        path.clone()
+                    };
+
+                    // Extract the file extension (e.g., "jpg")
+                    // finds the last "."
+                    let extension = if let Some(pos) = name.rfind('.') {
+                        name[pos + 1..].to_string()
+                    } else {
+                        "".to_string()
+                    };
+
+                    // get the item type from the extension
+                    let item_type = match extension.to_lowercase().as_str() {
+                        | "png"
+                        | "jpg"
+                        | "jpeg"
+                        | "gif"
+                        | "bmp"
+                        | "avif"
+                        | "webp"
+                        | "svg"
+                        | "apng"
+                        | "jfif"
+                        | "tiff"
+                        | "ico" => String::from("image"), // heic is not supported by html
+                        "mp4" | "mov" | "mkv" | "webm" => String::from("video"), // avi is not supported by html
+                        "mp3" | "wav" | "ogg" | "flac" => String::from("audio"),
+                        "3mf" | "stl" | "obj" | "step" | "stp" => String::from("3d"), // 3d model preview is not implemented
+                        _ => String::from("file"),
+                    };
+
+                    println!("FOUND FILE IN DATABASE: {}", path);
 
                     // compile the row from the database into a struct
                     info.items.push(FileInfoStruct {
@@ -380,18 +435,18 @@ async fn get_items(
                 })
             {
                 Ok(_) => {
+                    // Skip to the next item in the loop if a row is found in the database
                     continue;
                 }
-                // Skip to the next item in the loop if a row is found in the database
                 Err(rusqlite::Error::QueryReturnedNoRows) => {
-                    println!("NOT IN DATABASE: {}", path);
+                    println!("DID NOT FIND ITEM IN DATABASE: {}", path);
                 }
                 Err(err) => {
                     eprintln!("Failed to execute the statement: {}", err);
                 }
             }
 
-            // if the file is not in the database, retrieve metadata
+            // if the file is not in the database, retrieve metadata "manually"
 
             let name = entry.file_name().unwrap().to_string_lossy().into_owned();
 
@@ -462,12 +517,9 @@ async fn get_items(
                 // push to db
                 if
                     let Err(err) = conn.execute(
-                        "INSERT INTO files (path, container, name, extension, created, modified,accessed,item_type,size_bytes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                        "INSERT INTO files (path,  created, modified,accessed,size_bytes) VALUES (?1, ?2, ?3, ?4, ?5 )",
                         [
                             &path,
-                            &container,
-                            &name,
-                            &extension,
                             &created.map_or_else(
                                 || String::from("None"),
                                 |value| value.to_string()
@@ -480,7 +532,6 @@ async fn get_items(
                                 || String::from("None"),
                                 |value| value.to_string()
                             ),
-                            &item_type,
                             &size_bytes.map_or("None".to_string(), |num| num.to_string()),
                         ]
                     )
@@ -488,7 +539,7 @@ async fn get_items(
                     eprintln!("Error executing SQL: {}", err);
                 } else {
                     // success
-                    // println!("inserted db");
+                    println!("INSERTED FILE TO DATABASE: {}", path);
                 }
 
                 // get image dimensions
@@ -525,7 +576,7 @@ async fn get_items(
     // sort
     sort_items(&mut info.items, &sort, ascending);
 
-    println!("Compiled metadata & sorted items {:.2?}", now.elapsed());
+    println!("COMPILED METADATA & SORTED ITEMS {:.2?}", now.elapsed());
 
     Ok(info)
 }
@@ -578,7 +629,7 @@ async fn open_folder_dialog() -> Result<String, String> {
             // user selected a folder to open
             // Convert the selected folder path to a string
             let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
-            println!("{}", path);
+            println!("USER SELECTED PATH FROM DIALOG: {}", path);
             Ok(path)
         }
         None => {
