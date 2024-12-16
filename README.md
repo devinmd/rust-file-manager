@@ -6,22 +6,19 @@ File manager made with Rust & Tauri
 
 - get size of folders -- too slow
 - add more info to bottom bar
-- left sidebar with favorites
 
-DATABASE
-- skip the fetching files step and can just query database
-
-FIXES
+BUGS
 - deleting a file messes up the indexes because it shifts everything by skipping over one, this breaks the query selectors, only a visual bug though
+  - deleting two files messes up frontend
 
 FEATURES
 - search
-- back & forward btns
+- back & forward buttons
 - rename folders & files
 - tags and custom metadata
 - favorite files & folders
 - show or hide hidden files (dotfiles)
-- store low resolution thumbnails 
+- store low resolution thumbnails
 
 FRONTEND
 - right click context menu with actions
@@ -29,7 +26,7 @@ FRONTEND
 - change grid size
 - list view (table)
 - home menu
-- media view mode, hide filename & size, display images & videos locked to square 
+- masonry grid view
 
 QOL
 - loaders

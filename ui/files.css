@@ -30,15 +30,17 @@ div#content div#items button {
   justify-content: start;
   height: fit-content;
   align-items: center;
+  height: 100%;
   transition: 80ms;
 }
 
 div#content div#items button div.thumbnail {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  /* aspect-ratio: 1 / 1; */
   justify-content: center;
   display: flex;
+  flex-grow: 1;
   align-items: center;
   overflow: hidden;
 }
@@ -88,10 +90,12 @@ div#content div#items button p {
 
 div#content div#items button p.size {
   color: var(--text-2);
+  display: none;
 }
 
 div#content div#items button p.name {
   color: var(--text);
+  margin-top: auto;
 }
 
 div#content div#selected-file {
@@ -219,11 +223,11 @@ div#chk-walk-container input:checked + span.checkmark {
   background-color: var(--bg-1);
 }
 
-div#chk-show-thumbnails-container span.checkmark {
+/* div#chk-show-thumbnails-container span.checkmark {
   background-image: url("./assets/file.svg");
 }
 
 div#chk-show-thumbnails-container input:checked + span.checkmark {
   background-image: url("./assets/thumbnail.svg");
   background-color: var(--bg-1);
-}
+} */

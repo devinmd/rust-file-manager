@@ -170,12 +170,17 @@ fn get_system_info() -> Result<SystemInfoStruct, String> {
 
 #[tauri::command]
 fn send_file_to_trash(path: String) -> Result<(), String> {
-    match trash::delete(path) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(format!("Failed to delete file: {}", err)),
+    match trash::delete(path.clone()) {
+        Ok(_) => {
+            println!("MOVED '{}' TO TRASH", path);
+            Ok(())
+        }
+        Err(err) => {
+            println!("Failed to delete file '{}': {}", path, err);
+            Err(format!("Failed to delete file '{}': {}", path, err))
+        }
     }
 }
-
 #[tauri::command]
 fn rename_item(path: String, new: String) {
     print!("{}", new);

@@ -53,7 +53,7 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   // open folder
   try {
     const selected_folder_path = await invoke("open_folder_dialog");
-    console.log("selected folder");
+    console.log("selected folder, going to it");
     console.log(selected_folder_path);
     goto_folder(selected_folder_path);
   } catch (error) {
@@ -67,12 +67,12 @@ document.getElementById("chk-hide-text")?.addEventListener("click", async () => 
     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
   } catch {}
 });
-document.getElementById("chk-show-thumbnails")?.addEventListener("click", async () => {
-  // refresh
-  try {
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
-});
+// document.getElementById("chk-show-thumbnails")?.addEventListener("click", async () => {
+//   // refresh
+//   try {
+//     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+//   } catch {}
+// });
 
 document.getElementById("sort")?.addEventListener("input", async () => {
   // user changed sort
@@ -96,12 +96,21 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 });
 
 async function goto_folder(selected_folder_path: string) {
-  const startTime = new Date().getTime();
+  // get start time
+  const startTime = Date.now();
+
+  // get the selected sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
+
+  // recurisve or not
   const walk = (document.querySelector("#chk-walk") as HTMLInputElement).checked;
-  console.log("sort:");
-  console.log(sort);
+
+  console.log("going to folder:");
   console.log(selected_folder_path);
+
+  console.log("with sort:");
+  console.log(sort);
+
   let data = await invoke("get_items", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
@@ -114,11 +123,18 @@ async function goto_folder(selected_folder_path: string) {
     goto_folder(selected_folder_path);
   };
 
-  console.log("data:");
+  console.log("received data:");
   console.log(data);
+
   selectedItem.index = -1;
+
+  console.log("displaying items...");
   display_items(data);
-  console.log(`Retrieved data and displayed items in ${Date.now() - startTime}ms`);
+
+  // calculate and display elapsed time of getting items and then displaying them
+  let elapsedTime = formatMs(Date.now() - startTime);
+  console.log(`Retrieved data and displayed items in ${elapsedTime}`);
+  document.querySelector("#elapsed-time").innerHTML = elapsedTime;
 }
 
 const page_size = 64;
@@ -153,7 +169,7 @@ function display_items(data: Folder): void {
     let caret = document.createElement("img");
     caret.src = "ui/assets/caret.svg";
 
-    if (i == 0 || vec[i - 1] == "" || i==1 || i==0 || i==2) {
+    if (i == 0 || vec[i - 1] == "" || i == 1 || i == 0 || i == 2) {
       document.querySelector("#path").append(btn);
     } else {
       document.querySelector("#path").append(caret, btn);
@@ -189,7 +205,7 @@ function display_items(data: Folder): void {
     let spliced = clone.splice(offset, amount);
     load_more.remove();
 
-    let thumbnails: boolean = (document.querySelector("#chk-show-thumbnails") as HTMLInputElement).checked;
+    let thumbnails: boolean = true; //(document.querySelector("#chk-show-thumbnails") as HTMLInputElement).checked;
 
     for (let i = 0; i < spliced.length; i++) {
       const item = spliced[i];
@@ -565,4 +581,15 @@ function formatBytes(bytes: number, decimals: number = 2): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+}
+
+function formatMs(ms: number): string {
+  if (ms < 1000) {
+    // Less than 1000ms, show as milliseconds
+    return `${ms.toFixed(0)}ms`;
+  } else {
+    // 1000ms or more, convert to seconds with 3 decimal places
+    const seconds = ms / 1000;
+    return `${seconds.toFixed(3)}s`;
+  }
 }
