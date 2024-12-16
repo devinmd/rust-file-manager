@@ -1,6 +1,34 @@
+/*:root[theme="light"] {
+  --bg: #ffffff;
+  --bg-1: #efefef;
+  --bg-2: #dfdfdf;
+  --text: #202020;
+  --text-1: #303030;
+  --text-2: #404040;
+}*/
+
+:root[theme="dark"] {
+  --bg: #101012;
+  --bg-1: #202024;
+  --bg-2: #303036;
+  --text: #cfcfcf;
+  --text-1: #bfbfbf;
+  --text-2: #afafaf;
+}
+
+:root {
+  --button-radius: 6px;
+  --button-height: 24px;
+  --button-padding: 8px;
+  --button-text-size: 12px;
+}
+
+html,
 body {
   margin: 0;
-  overflow-y: hidden;
+  padding: 0;
+  height: 100%;
+  overflow-y: hidden; /* To avoid vertical overflow */
   background-color: var(--bg);
 }
 
@@ -25,7 +53,9 @@ body {
   box-shadow: inset 0 0 10px 10px var(--bg-2);
 }
 
-* {
+*,
+button,
+p {
   font-family: "Roboto", sans-serif;
 }
 
@@ -90,15 +120,16 @@ h5 {
 
 button {
   color: var(--text);
-  font-size: 12px;
-  height: 24px;
-  border-radius: 6px;
+  font-size: var(--button-text-size);
+  height: var(--button-height);
+  border-radius: var(--button-radius);
   border: none;
   background-color: var(--bg-1);
-  padding: 0 16px;
+  padding: 0 var(--button-padding);
   cursor: pointer;
   font-weight: 400;
   color: var(--text);
+  letter-spacing: 0.01em;
   transition: 80ms;
 }
 
@@ -139,14 +170,14 @@ button.icon-center img {
 
 select {
   color: var(--text);
-  font-size: 12px;
-  height: 24px;
+  font-size: var(--button-text-size);
+  height: var(--button-height);
   background-color: var(--bg-1);
   appearance: none;
   -webkit-appearance: none;
-  border-radius: 8px;
+  border-radius: var(--button-radius);
   border: none;
-  padding: 0 8px;
+  padding: 0 var(--button-padding);
   cursor: pointer;
   font-weight: 400;
 }

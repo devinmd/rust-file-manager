@@ -3,7 +3,6 @@
 div#content {
   display: flex;
   flex-direction: row;
-  display: none;
 }
 
 div#content div#items {
@@ -11,9 +10,10 @@ div#content div#items {
   flex-grow: 1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  height: calc(100vh - 128px);
+  height: calc(100vh - 62px);
   grid-auto-rows: min-content;
   overflow-y: auto;
+  box-sizing: border-box;
   gap: 8px;
   justify-content: start;
 
@@ -100,7 +100,7 @@ div#content div#selected-file {
   height: calc(100vh - 96px);
   overflow-y: auto;
   border-left: 1px solid var(--bg-1);
-  padding: 16px;
+  padding: 32px;
   min-width: 30%;
   max-width: 30%;
   justify-content: start;

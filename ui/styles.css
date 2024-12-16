@@ -1,44 +1,75 @@
-:root[theme="light"] {
-  --bg: #ffffff;
-  --bg-1: #efefef;
-  --bg-2: #dfdfdf;
-  --text: #202020;
-  --text-1: #303030;
-  --text-2: #404040;
+#app {
+  display: flex;
+  flex-direction: row;
 }
 
-:root[theme="dark"] {
-  --bg: #202024;
-  --bg-1: #303036;
-  --bg-2: #404048;
-  --text: #cfcfcf;
-  --text-1: #bfbfbf;
-  --text-2: #afafaf;
+#main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-div#home {
+#content {
+  display: flex;
+  flex-direction: row;
+  max-height: calc(100vh - 37px - 25px);
+}
+
+#sidenav {
+  width: 15%;
+  height: 100vh;
+  border-right: 1px solid var(--bg-1);
+}
+
+#sidenav #sidenav-buttons {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 8px;
+  gap: 8px;
+}
+
+#sidenav #sidenav-buttons div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#sidenav #sidenav-buttons button {
+  width: 100%;
+}
+
+#sidenav #sidenav-buttons p {
+  font-size: 12px;
+  padding-left: 8px;
+  margin-top: 8px;
+  font-weight: 500;
+  color: #7f7f88;
+  box-sizing: border-box;
+}
+
+#home {
   padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-div#home div#drives {
+#home #drives {
   display: flex;
   gap: 16px;
 }
 
-div#home div#drives div {
+#home #drives div {
   background-color: var(--bg-1);
   padding: 16px 16px;
   border-radius: 8px;
 }
 
-div#home div#drives div p {
+#home #drives div p {
   font-size: 14px;
 }
 
-div#top-bar {
+#top-bar {
   height: 36px;
   display: flex;
   flex-direction: row;
@@ -48,79 +79,33 @@ div#top-bar {
   border-bottom: 1px solid var(--bg-1);
 }
 
-div#top-bar div#path {
+#top-bar #path {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-div#top-bar div#path img {
+#top-bar #path img {
   height: 24px;
   object-fit: cover;
   width: 18px;
 }
 
-div#top-bar div#path button {
-  background-color: transparent;
-  padding: 0 8px;
-}
-
-div#top-bar div#path button:hover {
-  background-color: var(--bg-1);
-}
-
-div#top-bar p#current-folder-name {
+#top-bar p#current-folder-name {
   font-size: 16px;
   font-weight: bold;
 }
 
-div#bottom-bar p#current-folder-info {
+#bottom-bar p#current-folder-info {
   font-size: 12px;
 }
 
-div#bottom-bar {
+#bottom-bar {
   height: 24px;
   display: flex;
-  max-height: 32px;
   flex-direction: row;
   background-color: var(--bg);
   align-items: center;
   padding-left: 8px;
-  width: 100%;
-  bottom: 0;
-  left: 0;
-  position: fixed;
   border-top: 1px solid var(--bg-1);
-}
-
-div#content div#sidenav {
-  min-width: 15%;
-  max-width: 15%;
-  border-right: 1px solid var(--bg-1);
-}
-
-div#content div#sidenav div#sidenav-buttons {
-  display: flex;
-  flex-direction: column;
-  padding: 16px 8px;
-  gap: 8px;
-}
-
-div#content div#sidenav div#sidenav-buttons div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-div#content div#sidenav div#sidenav-buttons button {
-  width: 100%;
-}
-
-div#content div#sidenav div#sidenav-buttons p {
-  font-size: 12px;
-  padding-left: 8px;
-  margin-top: 8px;
-  font-weight: 500;
-  color: #7F7F88;
-  box-sizing: border-box;
 }

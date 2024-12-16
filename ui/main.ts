@@ -91,7 +91,9 @@ document.getElementById("chk-walk")?.addEventListener("input", async () => {
 document.getElementById("btn-home")?.addEventListener("click", async () => {
   // home butotn
   document.querySelector("#home").setAttribute("style", "display: flex;");
-  document.querySelector("#content").setAttribute("style", "display: none;");
+  document.querySelector("#items").setAttribute("style", "display: none;");
+  document.querySelector("#selected-file").setAttribute("style", "display: none;");
+
 });
 
 async function goto_folder(selected_folder_path: string) {
@@ -125,7 +127,8 @@ const page_size = 64;
 function display_items(data: Folder): void {
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
-  document.querySelector("#content").setAttribute("style", "display: flex;");
+  document.querySelector("#items").setAttribute("style", "display: grid;");
+  document.querySelector("#selected-file").setAttribute("style", "display: flex;");
 
   // clear grid
   const grid = document.querySelector("#items");
@@ -139,6 +142,7 @@ function display_items(data: Folder): void {
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
     let btn = document.createElement("button");
+    btn.className = 'clear '
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;

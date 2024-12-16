@@ -16,11 +16,33 @@
 
 <body>
 
-	<div id="app">
+<div id="app">
+
+
+	<div id="sidenav">
+		<div id="sidenav-buttons">
+			<div>
+				<button id="btn-home" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
+				<button id="btn-openfolder" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Open Folder</button>
+				<button id="btn-refresh" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Refresh</button>
+				<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Search</button>
+			</div>
+			<p>Favorites</p>
+			<div>
+				<button class="icon clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
+				<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
+				<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
+			</div>
+			<p>Drives</p>
+			<div></div>
+			<p>Recent</p>
+			<div></div>
+		</div>
+
+	</div>
+
+	<div id="main">
 		<div id="top-bar">
-			<button id="btn-home">Home</button>
-			<button id="btn-openfolder">Open Folder</button>
-			<button id="btn-refresh">Refresh</button>
 			<div id="path"></div>
 			<div id="chk-walk-container" class="chk-container">
 				<input type="checkbox" id="chk-walk">
@@ -43,46 +65,30 @@
 				<option value="size_true">Size small to big</option>
 			</select>
 		</div>
-
-		<div id="home">
-			<h1 id="greeting"></h1>
-			<h4>Drives</h4>
-			<div id="drives"></div>
-			<h4>Locations</h4>
-			<div id="locations"></div>
-			<h4>Favorites</h4>
-			<h4>Recents</h4>
-		</div>
-
 		<div id="content">
-			<div id="sidenav">
-				<div id="sidenav-buttons">
-					<div>
-						<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
-						<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Search</button>
-					</div>
-					<p>Favorites</p>
-					<div>
-						<button class="icon clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
-						<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
-						<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
-					</div>
-					<p>Drives</p>
-					<div></div>
-					<p>Recent</p>
-					<div></div>
+			
+
+				<div id="home">
+					<h1 id="greeting"></h1>
+					<h4>Drives</h4>
+					<div id="drives"></div>
+					<h4>Locations</h4>
+					<div id="locations"></div>
+					<h4>Favorites</h4>
+					<h4>Recents</h4>
 				</div>
-
+				<div id="items"></div>
+				<div id="selected-file"></div>
 			</div>
-			<div id="items"></div>
-			<div id="selected-file"></div>
+
+			<div id="bottom-bar">
+				<p id="current-folder-info"></p>
+			</div>
 		</div>
 
-		<div id="bottom-bar">
-			<p id="current-folder-info"></p>
-		</div>
 
 	</div>
+</div>
 
 </body>
 
