@@ -208,7 +208,7 @@ button.icon-center img {
 }
 
 select {
-  color: var(--text-b);
+  color: var(--text-d1);
   font-size: var(--button-text-size);
   height: var(--button-height);
   background-color: var(--bg-1);

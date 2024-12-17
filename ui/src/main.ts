@@ -12,7 +12,7 @@ const { invoke } = (window as any).__TAURI__.tauri;
 // globals
 var view = "grid";
 var selectedItem = { index: -1, path: "" };
-const page_size = 10;  // increasing page size does not have an effect on loading time
+const page_size = 64;  // increasing page size does not have an effect on loading time
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
@@ -385,7 +385,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   if(!item) return
 
   // add active class
-  document.querySelectorAll("button.active").forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll("#items button.active").forEach((btn) => btn.classList.remove("active"));
   itemContainer.classList.add("active");
 
   
