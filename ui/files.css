@@ -56,7 +56,6 @@ div#content div#items button.active {
   background-color: var(--bg-2);
 }
 div#content div#items button.active p {
-  /* font-weight: 700; */
   color: var(--text-l1) !important;
 }
 

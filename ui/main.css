@@ -15,17 +15,16 @@
   --text-l1: #ffffff;
   --text-b: #dcdde4;
   --text-d1: #c6c7d1;
-  --text-d2: #ABACBA;
+  --text-d2: #abacba;
   --text-d3: #9092a3;
+  --text-d4: #7a7c8e;
 
   /* --text-l1: yellow;
   --text-b: red;
   --text-d1: orange;
   --text-d2: blue;
   --text-d3: green; */
-
 }
-
 
 :root {
   /* buttons */
@@ -86,7 +85,11 @@ body {
 *,
 button,
 p {
-  font-family: "Roboto", sans-serif;
+  font-family: "Inter", sans-serif;
+}
+
+p {
+  letter-spacing: 0.01em;
 }
 
 img,
@@ -157,8 +160,8 @@ button {
   padding: 0 var(--button-padding);
   cursor: pointer;
   font-weight: 400;
-  color: var(--text-d1);
-  letter-spacing: 0.015em;
+  color: var(--text-d2);
+  letter-spacing: 0.01em;
   transition: 80ms;
 }
 
@@ -177,15 +180,15 @@ button.clear:hover {
 
 button.icon {
   text-align: left;
-  background-position: 8px, 3px;
-  background-size: 18px;
+  background-position: 8px 4px;
+  background-size: 16px;
   background-repeat: no-repeat;
   padding-left: 32px;
 }
 
 button.icon-center {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
