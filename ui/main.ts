@@ -3,6 +3,8 @@
 //
 const { invoke, convertFileSrc } = (window as any).__TAURI__.tauri;
 
+var view = "grid";
+
 // import { appDataDir, join } from "@tauri-apps/api/path";
 // import { convertFileSrc } from "@tauri-apps/api/tauri";
 // const { open } = window.__TAURI__.api;
@@ -22,6 +24,10 @@ async function get_userdata() {
   console.log(data);
 
   change_theme(data.theme);
+
+  if (data.view) {
+    view = data.view;
+  }
 
   if (data.last_folder) {
     console.log(data.last_folder);
@@ -61,12 +67,12 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   }
 });
 
-document.getElementById("chk-hide-text")?.addEventListener("click", async () => {
-  // refresh
-  try {
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
-});
+// document.getElementById("chk-hide-text")?.addEventListener("click", async () => {
+//   // refresh
+//   try {
+//     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+//   } catch {}
+// });
 // document.getElementById("chk-show-thumbnails")?.addEventListener("click", async () => {
 //   // refresh
 //   try {
@@ -88,6 +94,34 @@ document.getElementById("chk-walk")?.addEventListener("input", async () => {
   } catch {}
 });
 
+document.getElementById("view-type-grid")?.addEventListener("click", async () => {
+  try {
+    view = "grid";
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
+document.getElementById("view-type-list")?.addEventListener("click", async () => {
+  try {
+    view = "list";
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
+document.getElementById("view-type-columns")?.addEventListener("click", async () => {
+  try {
+    view = "columns";
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
+document.getElementById("view-type-masonry")?.addEventListener("click", async () => {
+  try {
+    view = "masonry";
+    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
+  } catch {}
+});
+
 document.getElementById("btn-home")?.addEventListener("click", async () => {
   // home butotn
   document.querySelector("#home").setAttribute("style", "display: flex;");
@@ -100,7 +134,6 @@ async function goto_folder(selected_folder_path: string) {
   const startTime = Date.now();
   document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
   document.querySelector("#bottom-bar-info").setAttribute("style", "display: none;");
-
 
   // get the selected sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
@@ -145,18 +178,8 @@ async function goto_folder(selected_folder_path: string) {
 
 const page_size = 64;
 
-function display_items(data: Folder): void {
-  // hide home and show files
-  document.querySelector("#home").setAttribute("style", "display: none;");
-  document.querySelector("#items").setAttribute("style", "display: grid;");
-  document.querySelector("#selected-file").setAttribute("style", "display: flex;");
-
-  // clear grid
-  const grid = document.querySelector("#items");
-  grid.innerHTML = "";
-
-  // make path btns
-  const vec = data.path.split("/");
+function generate_path_buttons(vec: string[]) {
+  // const vec = data.path.split("/");
   console.log("path:");
   vec[0] = "/";
   // vec[1] = ""
@@ -181,8 +204,23 @@ function display_items(data: Folder): void {
       document.querySelector("#path").append(caret, btn);
     }
   }
+}
 
-  // show file count
+function display_items(data: Folder): void {
+  // hide home and show files
+  document.querySelector("#home").setAttribute("style", "display: none;");
+  document.querySelector("#items").setAttribute("style", "display: default;");
+  document.querySelector("#selected-file").setAttribute("style", "display: flex;");
+
+  const itemsContainer = document.querySelector("#items");
+
+  // clear
+  itemsContainer.innerHTML = "";
+
+  // make path buttons
+  generate_path_buttons(data.path.split("/"));
+
+  // show file count in bottom bar
   document.querySelector("#current-folder-info").innerHTML = data.items.length + " items";
 
   // if folder is empty
@@ -192,7 +230,12 @@ function display_items(data: Folder): void {
     empty_folder_text.className = "empty-folder-text";
     document.querySelector("#items").append(empty_folder_text);
     console.log("displayed files (folder is empty)");
+    return;
   }
+
+  // get the view
+  console.log("VIEW: " + view);
+  itemsContainer.className = view;
 
   const load_more = document.createElement("button");
   load_more.innerHTML = "Load More";
@@ -207,57 +250,61 @@ function display_items(data: Folder): void {
   display_page(data.items, page_size, 0);
 
   function display_page(items: Item[], amount: number, offset: number) {
-    let clone = items.slice(0);
-    let spliced = clone.splice(offset, amount);
+    // clone the items array
+    let fullItemsList = items.slice(0);
+
+    // splice the items array to get a list that is just the items that will be displayed in this page
+    let itemsList = fullItemsList.splice(offset, amount);
+
+    // remove load more button (will be re added at the bottom)
     load_more.remove();
 
-    let thumbnails: boolean = true; //(document.querySelector("#chk-show-thumbnails") as HTMLInputElement).checked;
+    // for each item
+    for (let i = 0; i < itemsList.length; i++) {
+      const item = itemsList[i];
 
-    for (let i = 0; i < spliced.length; i++) {
-      const item = spliced[i];
       const item_container = document.createElement("button") as HTMLButtonElement;
-      const page_num = current_page;
+
+      // generate item thumbnail
       let thumbnail = document.createElement("div");
       thumbnail.className = "thumbnail";
-      if (thumbnails) {
-        thumbnail.append(generate_item_preview(item));
-      } else {
-        thumbnail.append();
-      }
-      item_container.append(thumbnail);
-      if (
-        (document.querySelector("#chk-hide-text") as HTMLInputElement).checked &&
-        (item.item_type == "image" || item.item_type == "video")
-      ) {
-        // if checked and is an image or video
-      } else {
-        // if unchecked OR is NOT an image or video
-        const item_name = document.createElement("p");
-        item_name.innerHTML = item.name;
-        item_name.className = "name";
-        const item_size = document.createElement("p");
-        item_size.innerHTML = formatBytes(item.size_bytes);
-        item_size.className = "size";
-        item_container.append(item_name, item_size);
-      }
+      thumbnail.append(generate_item_preview(item));
 
+      // item name
+      const item_name = document.createElement("p");
+      item_name.innerHTML = item.name;
+      item_name.className = "name";
+
+      // item size
+      const item_size = document.createElement("p");
+      item_size.innerHTML = formatBytes(item.size_bytes);
+      item_size.className = "size";
+
+      // append
+      item_container.append(thumbnail, item_name, item_size);
+
+      // set onclick for item container to select that item
       item_container.onclick = function () {
-        // TODO: FIX THIS
-        select_item(item, item_container, page_num * page_size + i);
+        select_item(item, item_container, current_page * page_size + i);
       };
 
+      // open file on double click
       item_container.ondblclick = function () {
         if (item.item_type == "folder") {
+          // if is folder, open the folder in finder
           goto_folder(item.path);
         } else {
+          // else, open the file in default app
           invoke("open_file_in_default_app", { path: item.path });
         }
       };
 
-      grid.appendChild(item_container);
+      // add the item to grid
+      itemsContainer.appendChild(item_container);
     }
     if (amount * (offset / amount + 1) < items.length) {
-      grid.appendChild(load_more);
+      // if there are still more, add the load more button back
+      itemsContainer.appendChild(load_more);
     }
   }
 

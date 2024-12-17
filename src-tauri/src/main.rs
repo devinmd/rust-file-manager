@@ -91,6 +91,8 @@ fn prepare_db() -> Result<()> {
 
     // temp
     set_userdata(&*conn, "theme", "dark");
+    set_userdata(&*conn, "view", "grid");
+
 
     Ok(())
 }
@@ -101,7 +103,7 @@ fn prepare_db() -> Result<()> {
 #[tauri::command]
 fn open_file_in_default_app(path: String) {
     match open::that(path) {
-        Ok(_) => println!("File opened successfully"),
+        Ok(_) => println!("OPENED FILE"),
         Err(e) => eprintln!("Failed to open file: {}", e),
     }
 }
@@ -217,6 +219,7 @@ struct ContainerDataStruct {
 struct UserDataStruct {
     last_folder: Option<String>,
     theme: Option<String>,
+    view: Option<String>,
 }
 
 fn get_userdata_item(conn: &Connection, key: &str) -> Result<Option<String>> {
@@ -250,7 +253,14 @@ fn get_userdata() -> Result<UserDataStruct, String> {
         }
     };
 
-    let data = UserDataStruct { last_folder, theme };
+    let view = match get_userdata_item(&conn, "view") {
+        Ok(value) => value,
+        Err(err) => {
+            return Err(format!("Error fetching view: {}", err));
+        }
+    };
+
+    let data = UserDataStruct { last_folder, theme,view };
     Ok(data)
 }
 

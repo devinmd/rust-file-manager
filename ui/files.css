@@ -1,4 +1,4 @@
-div#content div#items {
+div#content #items.grid {
   padding: var(--items-padding);
   flex-grow: 1;
   display: grid;
@@ -10,7 +10,33 @@ div#content div#items {
   justify-content: start;
 }
 
-div#content div#items button {
+div#content #items.list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  flex-grow: 1;
+}
+
+div#content #items.list button {
+  display: flex;
+  background-color: transparent;
+  flex-direction: row;
+  height: 32px;
+  padding: 8px;
+}
+div#content #items.list button div.thumbnail {
+  height: 24px;
+  width: 24px;
+}
+
+div#content #items.list button div.thumbnail img,
+div#content #items.list button div.thumbnail video {
+  height: 24px;
+width: auto;
+}
+
+div#content #items.grid button {
   display: flex;
   flex-direction: column;
   max-width: var(--item-width);
@@ -26,7 +52,7 @@ div#content div#items button {
   transition: 80ms;
 }
 
-div#content div#items button div.thumbnail {
+div#content #items.grid button div.thumbnail {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -36,8 +62,8 @@ div#content div#items button div.thumbnail {
   overflow: hidden;
 }
 
-div#content div#items button div.thumbnail img,
-div#content div#items button div.thumbnail video {
+div#content #items.grid button div.thumbnail img,
+div#content #items.grid button div.thumbnail video {
   border-radius: 3px;
   height: auto;
   max-height: 100%;
@@ -45,39 +71,38 @@ div#content div#items button div.thumbnail video {
   width: auto;
 }
 
-div#content div#items button#btn-load-more {
+div#content #items.grid button#btn-load-more {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-div#content div#items button.active {
+div#content #items button.active {
   background-color: var(--bg-2);
 }
-div#content div#items button.active p {
+div#content #items button.active p {
   color: var(--text-l1) !important;
 }
 
-div#content div#items button.active:hover {
+div#content #items button.active:hover {
   background-color: var(--bg-2);
 }
 
-div#content div#items button:hover {
+div#content #items button:hover {
   background-color: var(--bg-1);
-  /* outline: 2px solid blue; */
 }
 
-div#content div#items button p {
+div#content #items.grid button p {
   text-align: center;
 }
 
-div#content div#items button p.size {
+div#content #items button p.size {
   color: var(--text-d3);
   display: none;
 }
 
-div#content div#items button p.name {
+div#content #items button p.name {
   color: var(--text-b);
   margin-top: auto;
 }

@@ -179,6 +179,13 @@ button.clear:hover {
 }
 
 button.icon {
+  background-position:center;
+  background-size: 16px;
+  width: 32px;
+  background-repeat: no-repeat; 
+}
+
+button.icon-left {
   text-align: left;
   background-position: 8px 4px;
   background-size: 16px;

@@ -21,41 +21,49 @@
 
 		<div class="noselect" id="sidenav">
 			<div class="noselect">
-				<button id="btn-home" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
-				<button id="btn-openfolder" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Open Folder</button>
-				<button id="btn-refresh" class="icon clear" style="background-image: url('./ui/assets/home.svg');">Refresh</button>
-				<button class="icon clear" style="background-image: url('./ui/assets/home.svg');">Search</button>
+				<button id="btn-home" class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
+				<button id="btn-openfolder" class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Open Folder</button>
+				<button id="btn-refresh" class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Refresh</button>
+				<button class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Search</button>
 			</div>
 			<p class="noselect">Favorites</p>
 			<div>
-				<button class="icon clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
-				<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
-				<button class="icon clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
+				<button class="icon-left clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
+				<button class="icon-left clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
+				<button class="icon-left clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
 			</div>
 			<p class="noselect">Drives</p>
 			<div class="noselect"></div>
 			<p class="noselect">Recent</p>
 			<div class="noselect"></div>
 			<div style="margin-top: auto;"></div>
-			<button class="icon clear" style="background-image: url('./ui/assets/gear.svg');">Settings</button>
+			<button class="icon-left clear" style="background-image: url('./ui/assets/gear.svg');">Settings</button>
 
 		</div>
 
 		<div id="main">
 			<div id="top-bar">
 				<div id="path"></div>
+
 				<div id="chk-walk-container" class="chk-container">
 					<input type="checkbox" id="chk-walk">
 					<span class="checkmark"></span>
 				</div>
-				<div id="chk-hide-text-container" class="chk-container">
+				<!-- <div id="chk-hide-text-container" class="chk-container">
 					<input type="checkbox" id="chk-hide-text">
 					<span class="checkmark"></span>
-				</div>
+				</div> -->
 				<!-- <div id="chk-show-thumbnails-container" class="chk-container"> -->
 				<!-- <input type="checkbox" id="chk-show-thumbnails"> -->
 				<!-- <span class="checkmark"></span> -->
 				<!-- </div> -->
+				<div id="view-selector">
+					<button class="clear icon" id="view-type-grid" style="background-image: url('./ui/assets/grid.svg');"></button>
+					<button class="clear icon" id="view-type-list" style="background-image: url('./ui/assets/list.svg');"></button>
+					<button class="clear icon" id="view-type-columns" style="background-image: url('./ui/assets/columns.svg');"></button>
+					<button class="clear icon" id="view-type-masonry" style="background-image: url('./ui/assets/masonry.svg');"></button>
+				</div>
+
 				<select id="sort">
 					<option value="created_false">Date created new to old</option>
 					<option value="created_true">Date created old to new</option>
