@@ -4,7 +4,7 @@
 // const { open } = window.__TAURI__.api;
 
 // import helper functions
-import { formatMs, formatBytes, formatDate, generateItemPreview, Item } from "./helper";
+import { formatMs, formatBytes, formatDate, generateItemPreview, Item,formatItemType } from "./helper";
 
 //
 const { invoke } = (window as any).__TAURI__.tauri;
@@ -413,7 +413,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   info.id = "info";
 
   const type = document.createElement("p");
-  type.innerHTML = `Type<span>${item.item_type}</span>`;
+  type.innerHTML = `Type<span>${formatItemType(item.item_type)}</span>`;
   toAppend.push(type);
 
   const size = document.createElement("p");

@@ -18,9 +18,9 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return "0 Bytes";
   if (bytes == null) return "";
 
-  const k = 1024;
+  const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = ["Bytes", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -157,4 +157,12 @@ export function generateItemPreview(
   );
   elem.classList.add("noselect");
   return elem;
+}
+
+export function formatItemType(type: string): string {
+  if (type == "3d") {
+    return "3D";
+  } else {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  }
 }
