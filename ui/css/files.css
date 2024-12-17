@@ -33,7 +33,7 @@ div#content #items.list button div.thumbnail {
 div#content #items.list button div.thumbnail img,
 div#content #items.list button div.thumbnail video {
   height: 24px;
-width: auto;
+  width: auto;
 }
 
 div#content #items.grid button {
@@ -146,15 +146,13 @@ div#content div#selected-file div#selected-item-img-container video {
 }
 
 div#content div#selected-file div#actions {
-  display: flex;
-  flex-direction: row;
+  display: grid;
   margin-top: 16px;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  max-width: 100%;
   gap: 8px;
-}
-div#content div#selected-file div#actions button {
-  flex-grow: 1;
+  grid-auto-flow: dense;
+
 }
 
 div#content div#selected-file div#actions button:hover {
@@ -234,20 +232,20 @@ div.chk-container span.checkmark {
 }
 
 div#chk-hide-text-container span.checkmark {
-  background-image: url("./assets/show_text.svg");
+  background-image: url("../assets/show_text.svg");
 }
 
 div#chk-hide-text-container input:checked + span.checkmark {
-  background-image: url("./assets/hide_text.svg");
+  background-image: url("../assets/hide_text.svg");
   background-color: var(--bg-1);
 }
 
 div#chk-walk-container span.checkmark {
-  background-image: url("./assets/recursive_disabled.svg");
+  background-image: url("../assets/recursive_disabled.svg");
 }
 
 div#chk-walk-container input:checked + span.checkmark {
-  background-image: url("./assets/recursive_enabled.svg");
+  background-image: url("../assets/recursive_enabled.svg");
   background-color: var(--bg-1);
 }
 
