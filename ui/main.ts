@@ -98,6 +98,9 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 async function goto_folder(selected_folder_path: string) {
   // get start time
   const startTime = Date.now();
+  document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
+  document.querySelector("#bottom-bar-info").setAttribute("style", "display: none;");
+
 
   // get the selected sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
@@ -133,6 +136,9 @@ async function goto_folder(selected_folder_path: string) {
 
   // calculate and display elapsed time of getting items and then displaying them
   let elapsedTime = formatMs(Date.now() - startTime);
+  document.querySelector("#bottom-bar-info").setAttribute("style", "display: flex;");
+  document.querySelector("#bottom-bar-loading").setAttribute("style", "display: none;");
+
   console.log(`Retrieved data and displayed items in ${elapsedTime}`);
   document.querySelector("#elapsed-time").innerHTML = elapsedTime;
 }
@@ -300,7 +306,6 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const item_name = document.createElement("p");
   item_name.id = "item-name";
   item_name.innerHTML = item.name;
-  toAppend.push(item_name);
 
   // text
   const info = document.createElement("div");
@@ -313,10 +318,6 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const size = document.createElement("p");
   size.innerHTML = `Size<span>${formatBytes(item.size_bytes)}</span>`;
   item.size_bytes ? toAppend.push(size) : null;
-
-  const location = document.createElement("p");
-  location.innerHTML = `Location<span>${item.path}</span>`;
-  toAppend.push(location);
 
   const dimensions = document.createElement("p");
   dimensions.innerHTML = `Dimensions<span>${item.width} x ${item.height}</span>`;
@@ -333,6 +334,10 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const modified = document.createElement("p");
   modified.innerHTML = `Modified<span>${formatDate(item.modified)}</span>`;
   toAppend.push(modified);
+
+  const location = document.createElement("p");
+  location.innerHTML = `Path<span>${item.path}</span>`;
+  toAppend.push(location);
 
   info.append(...toAppend);
 
@@ -368,7 +373,11 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   actions.id = "actions";
   actions.append(btn_open, btn_rename, btn_delete, btn_favorite);
 
-  sidebar.append(generate_item_preview(item, true), info, actions);
+  const img_container = document.createElement("div");
+  img_container.id = "selected-item-img-container";
+  img_container.append(generate_item_preview(item, true));
+
+  sidebar.append(img_container, item_name, info, actions);
 }
 
 function deleteItem(path: String) {
@@ -534,6 +543,7 @@ function generate_item_preview(
     },
     { once: true }
   );
+  elem.classList.add("noselect");
   return elem;
 }
 

@@ -3,24 +3,54 @@
   --bg-1: #efefef;
   --bg-2: #dfdfdf;
   --text: #202020;
-  --text-1: #303030;
-  --text-2: #404040;
+  --text-d2: #303030;
+  --text-d3: #404040;
 }*/
 
 :root[theme="dark"] {
   --bg: #101012;
   --bg-1: #202024;
   --bg-2: #303036;
-  --text: #cfcfcf;
-  --text-1: #bfbfbf;
-  --text-2: #afafaf;
+
+  --text-l1: #ffffff;
+  --text-b: #dcdde4;
+  --text-d1: #c6c7d1;
+  --text-d2: #ABACBA;
+  --text-d3: #9092a3;
+
+  /* --text-l1: yellow;
+  --text-b: red;
+  --text-d1: orange;
+  --text-d2: blue;
+  --text-d3: green; */
+
 }
 
+
 :root {
+  /* buttons */
   --button-radius: 6px;
   --button-height: 24px;
   --button-padding: 8px;
   --button-text-size: 12px;
+
+  /* sizes */
+  --top-bar-height: calc(var(--button-height) + 16px);
+  --bottom-bar-height: 24px;
+  --sidenav-width: 15%;
+  --selected-item-width: 30vw;
+  --item-width: 120px;
+
+  /*  padding */
+  --items-padding: 32px;
+  --sidenav-padding: 8px;
+}
+
+.noselect {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+  cursor: default;
 }
 
 html,
@@ -74,7 +104,7 @@ video {
 
 p {
   margin: 0;
-  color: var(--text);
+  color: var(--text-b);
   font-size: 12px;
   font-weight: 400;
   margin: 0;
@@ -83,14 +113,14 @@ p {
 
 h1 {
   font-size: 32px;
-  color: var(--text);
+  color: var(--text-b);
   font-weight: 600;
   margin: 0;
 }
 
 h2 {
   font-size: 28px;
-  color: var(--text);
+  color: var(--text-b);
   font-weight: 600;
   margin: 0;
 }
@@ -99,7 +129,7 @@ h3 {
   font-size: 24px;
   margin: 0;
 
-  color: var(--text);
+  color: var(--text-b);
   font-weight: 600;
 }
 
@@ -107,19 +137,18 @@ h4 {
   font-size: 20px;
   margin: 0;
   letter-spacing: 0.01em;
-  color: var(--text);
+  color: var(--text-b);
   font-weight: 600;
 }
 
 h5 {
   font-size: 16px;
-  color: var(--text);
+  color: var(--text-b);
   font-weight: 600;
   margin: 0;
 }
 
 button {
-  color: var(--text);
   font-size: var(--button-text-size);
   height: var(--button-height);
   border-radius: var(--button-radius);
@@ -128,8 +157,8 @@ button {
   padding: 0 var(--button-padding);
   cursor: pointer;
   font-weight: 400;
-  color: var(--text);
-  letter-spacing: 0.01em;
+  color: var(--text-d1);
+  letter-spacing: 0.015em;
   transition: 80ms;
 }
 
@@ -156,7 +185,7 @@ button.icon {
 
 button.icon-center {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -169,7 +198,7 @@ button.icon-center img {
 }
 
 select {
-  color: var(--text);
+  color: var(--text-b);
   font-size: var(--button-text-size);
   height: var(--button-height);
   background-color: var(--bg-1);

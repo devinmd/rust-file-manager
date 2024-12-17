@@ -12,38 +12,41 @@
 #content {
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 37px - 25px);
+  max-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
+  min-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
+  box-sizing: border-box;
 }
 
 #sidenav {
-  width: 15%;
+  width: var(--sidenav-width);
   height: 100vh;
   border-right: 1px solid var(--bg-1);
+  box-sizing: border-box;
 }
 
-#sidenav #sidenav-buttons {
+#sidenav{
   display: flex;
   flex-direction: column;
-  padding: 16px 8px;
+  padding: var(--sidenav-padding);
   gap: 8px;
 }
 
-#sidenav #sidenav-buttons div {
+#sidenav div {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-#sidenav #sidenav-buttons button {
+#sidenav button {
   width: 100%;
 }
 
-#sidenav #sidenav-buttons p {
+#sidenav p {
   font-size: 12px;
   padding-left: 8px;
   margin-top: 8px;
   font-weight: 500;
-  color: #7f7f88;
+  color: var(--text-d3);
   box-sizing: border-box;
 }
 
@@ -70,7 +73,7 @@
 }
 
 #top-bar {
-  height: 36px;
+  height: var(--top-bar-height);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -85,6 +88,14 @@
   align-items: center;
 }
 
+#top-bar #path button{
+  color: var(--text-d2);
+}
+
+#top-bar #path button:last-child{
+  color: var(--text-d1);
+}
+
 #top-bar #path img {
   height: 24px;
   object-fit: cover;
@@ -97,18 +108,23 @@
 }
 
 #bottom-bar {
-  height: 24px;
+  height: var(--bottom-bar-height);
   display: flex;
   flex-direction: row;
-  background-color: var(--bg);
   align-items: center;
   padding-left: 8px;
   border-top: 1px solid var(--bg-1);
-  gap: 16px;
   z-index: 100;
 }
+#bottom-bar div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
 
-#bottom-bar p {
+}
+
+#bottom-bar div p {
   font-size: 12px;
-  color: var(--text-2);
+  color: var(--text-d3);
 }
