@@ -6,19 +6,22 @@
 // import helper functions
 import { formatMs, formatBytes, formatDate, generate_item_preview, Item } from "./helper";
 
-// 
+//
 const { invoke } = (window as any).__TAURI__.tauri;
 
 // globals
 var view = "grid";
 var selectedItem = { index: -1, path: "" };
-const page_size = 64;
+const page_size = 10;  // increasing page size does not have an effect on loading time
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
   console.log("loaded");
   get_system_info();
   get_userdata();
+
+  // set view to grid REMOVE LATER
+  (document.querySelector("#view-type-grid") as HTMLButtonElement).click();
 });
 
 async function get_userdata() {
@@ -98,32 +101,79 @@ document.getElementById("chk-walk")?.addEventListener("input", async () => {
   } catch {}
 });
 
-document.getElementById("view-type-grid")?.addEventListener("click", async () => {
+document.getElementById("view-type-grid")?.addEventListener("click", async function () {
   try {
     view = "grid";
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
-});
 
-document.getElementById("view-type-list")?.addEventListener("click", async () => {
+    // Remove "active" class from other buttons
+    document.querySelector("#view-type-list")?.classList.remove("active");
+    document.querySelector("#view-type-columns")?.classList.remove("active");
+    document.querySelector("#view-type-masonry")?.classList.remove("active");
+
+    // Add "active" class to the clicked button
+    this.classList.add("active");
+
+    // Trigger the refresh button click
+    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+  } catch (error) {
+    console.error("Error switching view to grid:", error);
+  }
+});
+document.getElementById("view-type-list")?.addEventListener("click", async function () {
   try {
     view = "list";
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
+
+    // Remove "active" class from other buttons
+    document.querySelector("#view-type-grid")?.classList.remove("active");
+    document.querySelector("#view-type-columns")?.classList.remove("active");
+    document.querySelector("#view-type-masonry")?.classList.remove("active");
+
+    // Add "active" class to the clicked button
+    this.classList.add("active");
+
+    // Trigger the refresh button click
+    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+  } catch (error) {
+    console.error("Error switching view to list:", error);
+  }
 });
 
-document.getElementById("view-type-columns")?.addEventListener("click", async () => {
+document.getElementById("view-type-columns")?.addEventListener("click", async function () {
   try {
     view = "columns";
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
+
+    // Remove "active" class from other buttons
+    document.querySelector("#view-type-grid")?.classList.remove("active");
+    document.querySelector("#view-type-list")?.classList.remove("active");
+    document.querySelector("#view-type-masonry")?.classList.remove("active");
+
+    // Add "active" class to the clicked button
+    this.classList.add("active");
+
+    // Trigger the refresh button click
+    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+  } catch (error) {
+    console.error("Error switching view to columns:", error);
+  }
 });
 
-document.getElementById("view-type-masonry")?.addEventListener("click", async () => {
+document.getElementById("view-type-masonry")?.addEventListener("click", async function () {
   try {
     view = "masonry";
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
+
+    // Remove "active" class from other buttons
+    document.querySelector("#view-type-grid")?.classList.remove("active");
+    document.querySelector("#view-type-list")?.classList.remove("active");
+    document.querySelector("#view-type-columns")?.classList.remove("active");
+
+    // Add "active" class to the clicked button
+    this.classList.add("active");
+
+    // Trigger the refresh button click
+    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+  } catch (error) {
+    console.error("Error switching view to masonry:", error);
+  }
 });
 
 document.getElementById("btn-home")?.addEventListener("click", async () => {
@@ -132,6 +182,8 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
   document.querySelector("#items").setAttribute("style", "display: none;");
   document.querySelector("#selected-file").setAttribute("style", "display: none;");
 });
+
+// 5.5 seconds for 35000 files or 0.15 milliseconds per file
 
 async function goto_folder(selected_folder_path: string) {
   // get start time
@@ -151,6 +203,8 @@ async function goto_folder(selected_folder_path: string) {
   console.log("with sort:");
   console.log(sort);
 
+  console.log("REQUESTED DATA AT "+formatMs(Date.now() - startTime));
+
   let data = await invoke("get_items", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
@@ -163,13 +217,16 @@ async function goto_folder(selected_folder_path: string) {
     goto_folder(selected_folder_path);
   };
 
-  console.log("received data:");
+  // console.log("received data:");
   console.log(data);
 
   selectedItem.index = -1;
 
+  console.log("RECEIVED DATA AT "+formatMs(Date.now() - startTime));
   console.log("displaying items...");
   display_items(data);
+  console.log("DISPLAYED ITEMS AT "+formatMs(Date.now() - startTime));
+
 
   // calculate and display elapsed time of getting items and then displaying them
   let elapsedTime = formatMs(Date.now() - startTime);
@@ -179,7 +236,6 @@ async function goto_folder(selected_folder_path: string) {
   console.log(`Retrieved data and displayed items in ${elapsedTime}`);
   document.querySelector("#elapsed-time").innerHTML = elapsedTime;
 }
-
 
 function generate_path_buttons(vec: string[]) {
   // const vec = data.path.split("/");
@@ -268,6 +324,8 @@ function display_items(data: Folder): void {
 
       const item_container = document.createElement("button") as HTMLButtonElement;
 
+      const thispage = current_page
+
       // generate item thumbnail
       let thumbnail = document.createElement("div");
       thumbnail.className = "thumbnail";
@@ -288,7 +346,7 @@ function display_items(data: Folder): void {
 
       // set onclick for item container to select that item
       item_container.onclick = function () {
-        select_item(item, item_container, current_page * page_size + i);
+        select_item(item, item_container, thispage * page_size + i);
       };
 
       // open file on double click
@@ -322,10 +380,18 @@ interface Folder {
 }
 
 function select_item(item: Item, item_container: HTMLButtonElement, index: number): void {
+
+  if(!item) return
+
   // add active class
   document.querySelectorAll("button.active").forEach((btn) => btn.classList.remove("active"));
   item_container.classList.add("active");
-  // remove active class from all other items
+
+  
+  document.querySelector('#selected-item-index').innerHTML = index.toString()
+  document.querySelector('#selected-item-path').innerHTML = item.path
+  if(item.size_bytes) document.querySelector('#selected-item-size').innerHTML = formatBytes(item.size_bytes)
+  if(!item.size_bytes) document.querySelector('#selected-item-size').innerHTML = ""
 
   selectedItem.index = index;
   selectedItem.path = item.path;
@@ -392,6 +458,9 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   const btn_favorite = document.createElement("button");
   btn_favorite.className = "icon-center";
   btn_favorite.innerHTML = "<img src='./ui/assets/heart.svg'>Favorite";
+  const btn_duplicate = document.createElement("button");
+  btn_duplicate.className = "icon-center";
+  btn_duplicate.innerHTML = "<img src='./ui/assets/duplicate.svg'>Duplicate";
   // btn_rename.onclick = function () {
   // const new_name = rename_input.value;
   // invoke("rename_item", { path: item.path, new: item.path + "test" });
@@ -405,7 +474,7 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(btn_open, btn_rename, btn_delete, btn_favorite);
+  actions.append(btn_open, btn_rename, btn_delete, btn_favorite,btn_duplicate);
 
   const img_container = document.createElement("div");
   img_container.id = "selected-item-img-container";

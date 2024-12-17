@@ -38,7 +38,6 @@ export function formatMs(ms: number): string {
   }
 }
 
-
 export function formatDate(epoch: number): string {
   const date = new Date(epoch * 1000); // Convert epoch to milliseconds
   const days: string[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -67,7 +66,6 @@ export function formatDate(epoch: number): string {
   return `${weekDay}, ${month} ${day}, ${year}, ${hours}:${minutes}`;
 }
 
-
 export function generate_item_preview(
   item: Item,
   video_controls: boolean = false
@@ -75,6 +73,7 @@ export function generate_item_preview(
   let elem: HTMLImageElement | HTMLAudioElement | HTMLVideoElement | null;
   switch (item.item_type) {
     case "folder":
+      // folder icons
       elem = document.createElement("img");
       switch (item.name.toLowerCase()) {
         case "downloads":
@@ -101,6 +100,7 @@ export function generate_item_preview(
           elem.src = "ui/assets/folders/users.svg";
           break;
         case "music":
+        case "songs":
           elem.src = "ui/assets/folders/music.svg";
           break;
         case "audio":
@@ -120,25 +120,30 @@ export function generate_item_preview(
           elem.src = "ui/assets/folders/3d.svg";
           break;
         default:
+          // default folder icon
           elem.src = "ui/assets/folders/folder.svg";
           break;
       }
       break;
     case "image":
+      // image file
       elem = document.createElement("img") as HTMLImageElement;
       elem.src = convertFileSrc(item.path);
       break;
     case "video":
+      // video file
       elem = document.createElement("video");
       elem.controls = video_controls;
       elem.src = convertFileSrc(item.path);
       break;
     case "audio":
+      // audio file
       elem = document.createElement("audio");
       elem.controls = true;
       elem.src = convertFileSrc(item.path);
       break;
-    default: // all other things
+    default:
+      // any other file (text file or something else)
       elem = document.createElement("img");
       elem.src = `ui/assets/files/${item.extension.toLowerCase()}.svg`;
       break;
@@ -153,5 +158,3 @@ export function generate_item_preview(
   elem.classList.add("noselect");
   return elem;
 }
-
-

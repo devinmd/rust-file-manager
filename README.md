@@ -4,6 +4,27 @@ File manager made with Rust & Tauri
 
 ## Todo
 
+- do masonry view
+  - skip anything that isnt an image and dont add text either
+  - use the grid mode dense
+
+
+- other functions
+  - copy paste
+  - moving files
+  - edit file metadata (exif)
+  - open with
+  - text file preview
+  - 3d model preview
+  - share button
+
+
+- set view in database
+- finish list view with table
+  - rename to table view
+
+- settings page
+
 - get size of folders -- too slow
 - add more info to bottom bar
 

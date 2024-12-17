@@ -241,11 +241,11 @@ div#chk-hide-text-container input:checked + span.checkmark {
 }
 
 div#chk-walk-container span.checkmark {
-  background-image: url("../assets/recursive_disabled.svg");
+  background-image: url("../assets/folder_open_outline.svg");
 }
 
 div#chk-walk-container input:checked + span.checkmark {
-  background-image: url("../assets/recursive_enabled.svg");
+  background-image: url("../assets/folder_open_fill.svg");
   background-color: var(--bg-1);
 }
 

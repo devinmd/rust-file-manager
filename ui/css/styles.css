@@ -78,7 +78,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   padding: 0 8px;
   border-bottom: 1px solid var(--bg-1);
 }
@@ -105,6 +105,14 @@
 
 #top-bar div#view-selector {
   display: flex;
+}
+
+#top-bar div#view-selector button.active:hover {
+  background-color: var(--bg-2);
+}
+
+#top-bar div#view-selector button.active {
+  background-color: var(--bg-1);
 }
 #top-bar div#view-selector button:first-child {
   border-bottom-left-radius: var(--button-radius);
