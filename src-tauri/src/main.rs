@@ -3,6 +3,16 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
+// import helpers & structs
+mod helpers;
+use helpers::{
+    ItemsInfoContainerStruct,
+    UserDataStruct,
+    SystemInfoStruct,
+    ItemInfoStruct,
+    DiskInfoStruct,
+}; // Bring specific structs into scope
+
 extern crate rusqlite;
 use lazy_static::lazy_static;
 use rusqlite::{ params, Connection, OptionalExtension, Result };
@@ -37,7 +47,7 @@ fn main() {
                 open_folder_dialog,
                 open_file_in_default_app,
                 send_file_to_trash,
-                get_items,
+                get_items_from_path,
                 get_userdata,
                 rename_item,
                 get_system_info
@@ -81,10 +91,22 @@ fn prepare_db() -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS files (
             path TEXT UNIQUE,
-            created NUMBER,
-            modified NUMBER,
-            accessed NUMBER,
-            size_bytes NUMBER
+            created INT,
+            modified INT,
+            accessed INT,
+            size_bytes INT,
+            favorite BOOLEAN DEFAULT 0
+        );",
+        []
+    )?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS folders (
+            path TEXT UNIQUE,
+            created INT,
+            modified INT,
+            accessed INT,
+            favorite BOOLEAN DEFAULT 0
         );",
         []
     )?;
@@ -92,7 +114,6 @@ fn prepare_db() -> Result<()> {
     // temp
     set_userdata(&*conn, "theme", "dark");
     set_userdata(&*conn, "view", "grid");
-
 
     Ok(())
 }
@@ -108,29 +129,6 @@ fn open_file_in_default_app(path: String) {
     }
 }
 
-#[derive(Serialize)]
-struct DiskInfo {
-    name: String,
-    kind: String,
-    file_system: String,
-    total_space: u64,
-    mount_point: String,
-    available_space: u64,
-    available_space_formatted: String,
-    total_space_formatted: String,
-    space_used: u64,
-    space_used_formatted: String,
-    is_removable: bool,
-}
-
-#[derive(Serialize)]
-struct SystemInfoStruct {
-    os: Option<String>,
-    version: Option<String>,
-    name: Option<String>,
-    disks: Vec<DiskInfo>,
-}
-
 #[tauri::command]
 fn get_system_info() -> Result<SystemInfoStruct, String> {
     let mut sys: System = System::new_all();
@@ -142,10 +140,10 @@ fn get_system_info() -> Result<SystemInfoStruct, String> {
     let name: Option<String> = System::host_name().map(|s| s.to_string());
 
     let disks_list: Disks = Disks::new_with_refreshed_list();
-    let mut disks: Vec<DiskInfo> = Vec::new(); // Initialize disk_info vector
+    let mut disks: Vec<DiskInfoStruct> = Vec::new(); // Initialize disk_info vector
 
     for disk in disks_list.list() {
-        disks.push(DiskInfo {
+        disks.push(DiskInfoStruct {
             name: disk.name().to_string_lossy().to_string(),
             kind: disk.kind().to_string(),
             file_system: disk.file_system().to_string_lossy().to_string(),
@@ -195,33 +193,6 @@ fn rename_item(path: String, new: String) {
 use std::fs;
 use std::time::{ SystemTime, UNIX_EPOCH };
 
-#[derive(Serialize)]
-struct FileInfoStruct {
-    name: String,
-    created: Option<u64>,
-    modified: Option<u64>,
-    accessed: Option<u64>,
-    path: String,
-    container: String,
-    size_bytes: Option<u64>,
-    item_type: String,
-    extension: String,
-}
-
-#[derive(Serialize)]
-struct ContainerDataStruct {
-    name: String,
-    path: String,
-    item_type: String,
-    items: Vec<FileInfoStruct>,
-}
-#[derive(Serialize)]
-struct UserDataStruct {
-    last_folder: Option<String>,
-    theme: Option<String>,
-    view: Option<String>,
-}
-
 fn get_userdata_item(conn: &Connection, key: &str) -> Result<Option<String>> {
     let mut stmt = conn.prepare("SELECT value FROM userdata WHERE key = ?1")?;
     let mut rows = stmt.query_map(&[key], |row| row.get(0))?;
@@ -260,7 +231,7 @@ fn get_userdata() -> Result<UserDataStruct, String> {
         }
     };
 
-    let data = UserDataStruct { last_folder, theme,view };
+    let data = UserDataStruct { last_folder, theme, view };
     Ok(data)
 }
 
@@ -328,33 +299,35 @@ fn read_directory_to_vec(
 }
 
 #[tauri::command]
-async fn get_items(
+async fn get_items_from_path(
     selected_folder: String,
     sort: String,
     ascending: bool,
     walk: bool,
     dotfiles: bool
-) -> Result<ContainerDataStruct, String> {
+) -> Result<ItemsInfoContainerStruct, String> {
     use std::fs;
 
     let conn = DB_CONNECTION.lock().unwrap();
 
-    // update database with userdata
-    set_userdata(&*conn, "last_folder", &selected_folder.clone());
+    // update database with new last_folder
+    if let Err(e) = set_userdata(&*conn, "last_folder", &selected_folder.clone()) {
+        eprintln!("Failed to set user data: {}", e);
+    }
 
-    // final struct
-    let mut info = ContainerDataStruct {
-        name: "name".to_string(),
+    // final struct that will be sent to frontend
+    let mut info = ItemsInfoContainerStruct {
         items: Vec::new(),
         path: selected_folder.clone(),
-        item_type: "folder".to_string(),
     };
 
+    // get time
     let mut now = Instant::now();
 
-    // list of files/folders
+    // get the list of items
     let items = read_directory_to_vec(Path::new(&selected_folder), walk, dotfiles);
 
+    // get time
     println!("RECEIVED LIST OF ITEMS IN {:.2?}", now.elapsed());
     now = Instant::now();
 
@@ -435,7 +408,7 @@ async fn get_items(
                     println!("FOUND FILE IN DATABASE: {}", path);
 
                     // compile the row from the database into a struct
-                    info.items.push(FileInfoStruct {
+                    info.items.push(ItemInfoStruct {
                         name,
                         created,
                         modified,
@@ -569,7 +542,7 @@ async fn get_items(
                 }*/
             }
 
-            info.items.push(FileInfoStruct {
+            info.items.push(ItemInfoStruct {
                 name,
                 created,
                 modified,
@@ -596,7 +569,7 @@ async fn get_items(
     Ok(info)
 }
 
-fn sort_items(folders: &mut Vec<FileInfoStruct>, sort_by: &str, ascending: bool) {
+fn sort_items(folders: &mut Vec<ItemInfoStruct>, sort_by: &str, ascending: bool) {
     match sort_by {
         "name" => {
             folders.sort_by(|a, b| {

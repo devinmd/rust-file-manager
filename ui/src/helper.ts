@@ -66,7 +66,7 @@ export function formatDate(epoch: number): string {
   return `${weekDay}, ${month} ${day}, ${year}, ${hours}:${minutes}`;
 }
 
-export function generate_item_preview(
+export function generateItemPreview(
   item: Item,
   video_controls: boolean = false
 ): HTMLImageElement | HTMLAudioElement | HTMLVideoElement {

@@ -4,7 +4,7 @@
 // const { open } = window.__TAURI__.api;
 
 // import helper functions
-import { formatMs, formatBytes, formatDate, generate_item_preview, Item } from "./helper";
+import { formatMs, formatBytes, formatDate, generateItemPreview, Item } from "./helper";
 
 //
 const { invoke } = (window as any).__TAURI__.tauri;
@@ -16,8 +16,10 @@ const page_size = 10;  // increasing page size does not have an effect on loadin
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("loaded");
+  console.log("LOADED FRONTEND");
+  console.log("REQUESTED SYSTEM INFO");
   get_system_info();
+  console.log("REQUESTED USER DATA");
   get_userdata();
 
   // set view to grid REMOVE LATER
@@ -27,24 +29,23 @@ window.addEventListener("DOMContentLoaded", () => {
 async function get_userdata() {
   // get user data here, theme, last folder, etc.
   const data = await invoke("get_userdata");
-  console.log("received userdata");
+  console.log("RECEIVED USER DATA:");
   console.log(data);
 
-  change_theme(data.theme);
+  changeTheme(data.theme);
 
   if (data.view) {
     view = data.view;
   }
 
   if (data.last_folder) {
-    console.log(data.last_folder);
-    goto_folder(data.last_folder);
+    goToFolder(data.last_folder);
   }
 }
 
 async function get_system_info() {
   const data = await invoke("get_system_info");
-  console.log("system info:");
+  console.log("RECEIVED SYSTEM INFO:");
   console.log(data);
   let disks = data.disks;
   document.querySelector("#greeting").innerHTML = data.name;
@@ -68,7 +69,7 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
     const selected_folder_path = await invoke("open_folder_dialog");
     console.log("selected folder, going to it");
     console.log(selected_folder_path);
-    goto_folder(selected_folder_path);
+    goToFolder(selected_folder_path);
   } catch (error) {
     console.error("Error selecting folder:", error);
   }
@@ -185,7 +186,7 @@ document.getElementById("btn-home")?.addEventListener("click", async () => {
 
 // 5.5 seconds for 35000 files or 0.15 milliseconds per file
 
-async function goto_folder(selected_folder_path: string) {
+async function goToFolder(selected_folder_path: string) {
   // get start time
   const startTime = Date.now();
   document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
@@ -197,15 +198,15 @@ async function goto_folder(selected_folder_path: string) {
   // recurisve or not
   const walk = (document.querySelector("#chk-walk") as HTMLInputElement).checked;
 
-  console.log("going to folder:");
+  console.log("GOING TO FOLDER:");
   console.log(selected_folder_path);
 
-  console.log("with sort:");
+  console.log("WITH SORT:");
   console.log(sort);
 
   console.log("REQUESTED DATA AT "+formatMs(Date.now() - startTime));
 
-  let data = await invoke("get_items", {
+  let data = await invoke("get_items_from_path", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
     ascending: /true/i.test(sort[1]),
@@ -214,7 +215,7 @@ async function goto_folder(selected_folder_path: string) {
   });
 
   (document.querySelector("#btn-refresh") as HTMLButtonElement).onclick = function () {
-    goto_folder(selected_folder_path);
+    goToFolder(selected_folder_path);
   };
 
   // console.log("received data:");
@@ -224,7 +225,7 @@ async function goto_folder(selected_folder_path: string) {
 
   console.log("RECEIVED DATA AT "+formatMs(Date.now() - startTime));
   console.log("displaying items...");
-  display_items(data);
+  displayItems(data);
   console.log("DISPLAYED ITEMS AT "+formatMs(Date.now() - startTime));
 
 
@@ -237,7 +238,7 @@ async function goto_folder(selected_folder_path: string) {
   document.querySelector("#elapsed-time").innerHTML = elapsedTime;
 }
 
-function generate_path_buttons(vec: string[]) {
+function generatePathButtons(vec: string[]) {
   // const vec = data.path.split("/");
   console.log("path:");
   vec[0] = "/";
@@ -251,7 +252,7 @@ function generate_path_buttons(vec: string[]) {
     btn.onclick = function () {
       // go to path
       vec.length = i + 1;
-      goto_folder(vec.join("/").replace("//", "/"));
+      goToFolder(vec.join("/").replace("//", "/"));
     };
     btn.innerHTML = vec[i];
     let caret = document.createElement("img");
@@ -265,7 +266,7 @@ function generate_path_buttons(vec: string[]) {
   }
 }
 
-function display_items(data: Folder): void {
+function displayItems(data: Folder): void {
   // hide home and show files
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#items").setAttribute("style", "display: default;");
@@ -277,7 +278,7 @@ function display_items(data: Folder): void {
   itemsContainer.innerHTML = "";
 
   // make path buttons
-  generate_path_buttons(data.path.split("/"));
+  generatePathButtons(data.path.split("/"));
 
   // show file count in bottom bar
   document.querySelector("#current-folder-info").innerHTML = data.items.length + " items";
@@ -301,14 +302,14 @@ function display_items(data: Folder): void {
   load_more.id = "btn-load-more";
   load_more.onclick = function () {
     current_page += 1;
-    display_page(data.items, page_size, page_size * current_page);
+    displayPage(data.items, page_size, page_size * current_page);
   };
 
   // display files
   let current_page: number = 0;
-  display_page(data.items, page_size, 0);
+  displayPage(data.items, page_size, 0);
 
-  function display_page(items: Item[], amount: number, offset: number) {
+  function displayPage(items: Item[], amount: number, offset: number) {
     // clone the items array
     let fullItemsList = items.slice(0);
 
@@ -322,19 +323,19 @@ function display_items(data: Folder): void {
     for (let i = 0; i < itemsList.length; i++) {
       const item = itemsList[i];
 
-      const item_container = document.createElement("button") as HTMLButtonElement;
+      const itemContainer = document.createElement("button") as HTMLButtonElement;
 
       const thispage = current_page
 
       // generate item thumbnail
       let thumbnail = document.createElement("div");
       thumbnail.className = "thumbnail";
-      thumbnail.append(generate_item_preview(item));
+      thumbnail.append(generateItemPreview(item));
 
       // item name
-      const item_name = document.createElement("p");
-      item_name.innerHTML = item.name;
-      item_name.className = "name";
+      const itemName = document.createElement("p");
+      itemName.innerHTML = item.name;
+      itemName.className = "name";
 
       // item size
       const item_size = document.createElement("p");
@@ -342,18 +343,18 @@ function display_items(data: Folder): void {
       item_size.className = "size";
 
       // append
-      item_container.append(thumbnail, item_name, item_size);
+      itemContainer.append(thumbnail, itemName, item_size);
 
       // set onclick for item container to select that item
-      item_container.onclick = function () {
-        select_item(item, item_container, thispage * page_size + i);
+      itemContainer.onclick = function () {
+        selectItem(item, itemContainer, thispage * page_size + i);
       };
 
       // open file on double click
-      item_container.ondblclick = function () {
+      itemContainer.ondblclick = function () {
         if (item.item_type == "folder") {
           // if is folder, open the folder in finder
-          goto_folder(item.path);
+          goToFolder(item.path);
         } else {
           // else, open the file in default app
           invoke("open_file_in_default_app", { path: item.path });
@@ -361,7 +362,7 @@ function display_items(data: Folder): void {
       };
 
       // add the item to grid
-      itemsContainer.appendChild(item_container);
+      itemsContainer.appendChild(itemContainer);
     }
     if (amount * (offset / amount + 1) < items.length) {
       // if there are still more, add the load more button back
@@ -379,13 +380,13 @@ interface Folder {
   path: string;
 }
 
-function select_item(item: Item, item_container: HTMLButtonElement, index: number): void {
+function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
 
   if(!item) return
 
   // add active class
   document.querySelectorAll("button.active").forEach((btn) => btn.classList.remove("active"));
-  item_container.classList.add("active");
+  itemContainer.classList.add("active");
 
   
   document.querySelector('#selected-item-index').innerHTML = index.toString()
@@ -476,11 +477,11 @@ function select_item(item: Item, item_container: HTMLButtonElement, index: numbe
   actions.id = "actions";
   actions.append(btn_open, btn_rename, btn_delete, btn_favorite,btn_duplicate);
 
-  const img_container = document.createElement("div");
-  img_container.id = "selected-item-img-container";
-  img_container.append(generate_item_preview(item, true));
+  const imgContainer = document.createElement("div");
+  imgContainer.id = "selected-item-img-container";
+  imgContainer.append(generateItemPreview(item, true));
 
-  sidebar.append(img_container, item_name, info, actions);
+  sidebar.append(imgContainer, item_name, info, actions);
 }
 
 function deleteItem(path: String) {
@@ -564,7 +565,7 @@ function previousItem() {
   if (previousItemElem) previousItemElem.click();
 }
 
-function change_theme(t: string): void {
+function changeTheme(t: string): void {
   const root = document.querySelector(":root");
   root.setAttribute("theme", t);
 }
