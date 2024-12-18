@@ -94,6 +94,7 @@ export function generateItemPreview(
           break;
         case "movies":
         case "films":
+        case "film":
           elem.src = "ui/assets/folders/movies.svg";
           break;
         case "users":
@@ -101,10 +102,11 @@ export function generateItemPreview(
           break;
         case "music":
         case "songs":
+        case "audio":
           elem.src = "ui/assets/folders/music.svg";
           break;
-        case "audio":
-          elem.src = "ui/assets/folders/audio.svg";
+        case "books":
+          elem.src = "ui/assets/folders/books.svg";
           break;
         case "src":
           elem.src = "ui/assets/folders/src.svg";

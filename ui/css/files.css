@@ -227,7 +227,7 @@ div#content div#selected-file div#info p {
 div#content div#selected-file div#info p span {
   float: right;
   color: var(--text-d2);
-  max-width: 80%;
+  max-width: 65%;
   text-align: right;
 }
 

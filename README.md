@@ -8,7 +8,7 @@ File manager made with Rust & Tauri
   - skip anything that isnt an image and dont add text either
   - use the grid mode dense
 
-gallery view
+- gallery view
 
 - other functions
   - copy paste
@@ -48,6 +48,8 @@ OTHER
 
 BACKBURNER
 - proper audio player
+- option to cancel extremely large recursive functions otherwise the user must force quit the app
+  - cancel button where it currently says Loading on the bottom bar
 - custom themes
 - handle .app "folders"
 - support for file servers
