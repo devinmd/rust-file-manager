@@ -27,7 +27,6 @@ BUGS
 
 FEATURES
 - search
-- back & forward buttons
 - rename folders & files
 - tags and custom metadata
 - favorite files & folders

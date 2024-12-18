@@ -199,6 +199,15 @@ button.icon-center img {
   width: auto;
 }
 
+button.disabled {
+  cursor: default;
+  opacity: 50%;
+}
+
+button.clear.disabled:hover {
+  background-color: var(--bg);
+}
+
 select {
   color: var(--text-d1);
   font-size: var(--button-text-size);

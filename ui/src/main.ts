@@ -23,6 +23,8 @@ var view = "grid";
 var selectedItem = { index: -1, path: "" };
 const page_size = 64; // increasing page size does not have an effect on loading time
 var recursive = false;
+var history = [];
+var historyIndex = -1;
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
@@ -90,6 +92,22 @@ document.getElementById("btn-nowalk")?.addEventListener("click", async function 
   (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
 });
 
+// TODO FIX DISABLED CLASS TOGGLE ITS "DELAYED"
+
+document.getElementById("btn-back")?.addEventListener("click", async function () {
+  if (historyIndex > 0) {
+    historyIndex--;
+    goToFolder(history[historyIndex]);
+  }
+});
+
+document.getElementById("btn-forward")?.addEventListener("click", async function () {
+  if (historyIndex < history.length - 1) {
+    historyIndex++;
+    goToFolder(history[historyIndex]);
+  }
+});
+
 document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
   // open folder
   try {
@@ -147,6 +165,9 @@ async function goToFolder(selected_folder_path: string) {
   const startTime = Date.now();
   changePage("content");
 
+  document.querySelector("#bottom-bar-info").setAttribute("style", "display: none;");
+  document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
+
   // get the selected sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
 
@@ -155,6 +176,43 @@ async function goToFolder(selected_folder_path: string) {
 
   console.log("WITH SORT:");
   console.log(sort);
+
+  // push to history
+  // if is at last index in history
+  if (history[historyIndex] == selected_folder_path) {
+    // already at the current history spot, do nothing
+  } else if (historyIndex == history.length - 1) {
+    // if the user is at the last item in history currently
+    history.push(selected_folder_path);
+    historyIndex = history.length - 1;
+  } else {
+    // delete everything after current index
+    history.length = historyIndex + 1;
+    // push
+    history.push(selected_folder_path);
+    // add 1 to history index
+    historyIndex += 1;
+  }
+
+  if (historyIndex == 0) {
+    // no more previous items
+    document.querySelector("#btn-back").classList.add("disabled");
+  }
+  if (historyIndex > 0) {
+    // there are previous items
+    document.querySelector("#btn-back").classList.remove("disabled");
+  }
+  if (historyIndex == history.length - 1) {
+    // no more items ahead
+    document.querySelector("#btn-forward").classList.add("disabled");
+  }
+  if (historyIndex < history.length - 1) {
+    // there are items ahead
+    document.querySelector("#btn-forward").classList.remove("disabled");
+  }
+  console.log("HISTORY");
+  console.log(history);
+  console.log(historyIndex);
 
   console.log("REQUESTED DATA AT " + formatMs(Date.now() - startTime));
 
