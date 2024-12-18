@@ -34,7 +34,7 @@
   --button-text-size: 12px;
 
   /* sizes */
-  --top-bar-height: calc(var(--button-height) + 16px);
+  --topnav-height: calc(var(--button-height) + 16px);
   --bottom-bar-height: 24px;
   --sidenav-width: 15vw;
   --selected-item-width: 30vw;

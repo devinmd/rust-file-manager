@@ -17,30 +17,35 @@
 <body>
 
 	<div id="app">
-		<div class="noselect" id="sidenav">
-			<div class="noselect">
+		<div id="sidenav">
+			<div>
 				<button id="btn-home" class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
 				<button id="btn-openfolder" class="icon-left clear" style="background-image: url('./ui/assets/open.svg');">Open Folder</button>
 				<button id="btn-refresh" class="icon-left clear" style="background-image: url('./ui/assets/refresh.svg');">Refresh</button>
 				<button class="icon-left clear" style="background-image: url('./ui/assets/search.svg');">Search</button>
 			</div>
-			<p class="noselect">Favorites</p>
+			<p>Favorites</p>
 			<div>
 				<button class="icon-left clear" style="background-image: url('./ui/assets/heart.svg');">Favorite Files</button>
 				<button class="icon-left clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Downloads</button>
 				<button class="icon-left clear" style="background-image: url('./ui/assets/folders/folder_outline.svg');">Documents</button>
 			</div>
-			<p class="noselect">Drives</p>
-			<div class="noselect"></div>
-			<p class="noselect">Recent</p>
-			<div class="noselect"></div>
+			<p>Drives</p>
+			<div></div>
+			<p>Recent</p>
+			<div></div>
 			<div style="margin-top: auto;"></div>
 			<button class="icon-left clear" style="background-image: url('./ui/assets/gear.svg');" id="btn-settings">Settings</button>
 
 		</div>
 
 		<div id="main">
-			<div id="top-bar">
+			<div id="topnav">
+				<div class="btn-selector">
+					<button class="icon clear" id="btn-back" style="background-image: url('./ui/assets/back.svg');"></button>
+					<button class="icon clear" id="btn-forward" style="background-image: url('./ui/assets/forward.svg');"></button>
+
+				</div>
 				<div id="path"></div>
 				<div style="margin-left: auto;"></div>
 
@@ -51,9 +56,11 @@
 
 				<div class="btn-selector" id="view-type-btns">
 					<button class="clear icon" id="view-type-grid" style="background-image: url('./ui/assets/grid.svg');"></button>
-					<button class="clear icon" id="view-type-table" style="background-image: url('./ui/assets/list.svg');"></button>
+					<button class="clear icon" id="view-type-table" style="background-image: url('./ui/assets/table.svg');"></button>
 					<button class="clear icon" id="view-type-columns" style="background-image: url('./ui/assets/columns.svg');"></button>
 					<button class="clear icon" id="view-type-masonry" style="background-image: url('./ui/assets/masonry.svg');"></button>
+					<button class="clear icon" id="view-type-gallery" style="background-image: url('./ui/assets/gallery.svg');"></button>
+
 				</div>
 
 				<select id="sort">
@@ -75,7 +82,7 @@
 				<h4>Recents</h4>
 			</div>
 			<div id="settings">
-				<h1 class="noselect">Settings</h1>
+				<h1>Settings</h1>
 			</div>
 			<div id="content">
 				<div id="items-grid" class="items-container"></div>

@@ -8,6 +8,7 @@ File manager made with Rust & Tauri
   - skip anything that isnt an image and dont add text either
   - use the grid mode dense
 
+gallery view
 
 - other functions
   - copy paste
@@ -18,15 +19,7 @@ File manager made with Rust & Tauri
   - 3d model preview
   - share button
 
-
-- set view in database
-- finish list view with table
-  - rename to table view
-
-- settings page
-
-- get size of folders -- too slow
-- add more info to bottom bar
+- last used view in database
 
 BUGS
 - deleting a file messes up the indexes because it shifts everything by skipping over one, this breaks the query selectors, only a visual bug though
@@ -39,18 +32,17 @@ FEATURES
 - tags and custom metadata
 - favorite files & folders
 - show or hide hidden files (dotfiles)
-- store low resolution thumbnails
+- store low resolution thumbnails especially for videos
+- fullscreen preview on spacebar click
 
 FRONTEND
 - right click context menu with actions
 - column view
 - change grid size
-- list view (table)
 - home menu
 - masonry grid view
 
-QOL
-- loaders
+OTHER
 - automaically keep loading files as user scrolls
 - app icon
 

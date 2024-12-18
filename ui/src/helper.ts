@@ -205,16 +205,6 @@ export function changeView(v: string): void {
   document.querySelector(`#items-${v}`).classList.add("active");
   document.querySelector(`#items-${v}`).setAttribute("style", "display: default;");
 
-
-  switch (v) {
-    case "grid":
-      break;
-    case "table":
-      break;
-    case "columns":
-      break;
-    case "masonry":
-      break;
-  }
+  // refresh
   (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
 }

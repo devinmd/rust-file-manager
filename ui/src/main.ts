@@ -116,43 +116,19 @@ document.getElementById("view-type-table")?.addEventListener("click", async func
   changeView("table");
   view = "table";
 });
-
 document.getElementById("view-type-columns")?.addEventListener("click", async function () {
-  try {
-    view = "columns";
+  changeView("columns");
+  view = "columns";
+});
 
-    // Remove "active" class from other buttons
-    document.querySelector("#view-type-grid")?.classList.remove("active");
-    document.querySelector("#view-type-list")?.classList.remove("active");
-    document.querySelector("#view-type-masonry")?.classList.remove("active");
-
-    // Add "active" class to the clicked button
-    this.classList.add("active");
-
-    // Trigger the refresh button click
-    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
-  } catch (error) {
-    console.error("Error switching view to columns:", error);
-  }
+document.getElementById("view-type-gallery")?.addEventListener("click", async function () {
+  changeView("gallery");
+  view = "gallery";
 });
 
 document.getElementById("view-type-masonry")?.addEventListener("click", async function () {
-  try {
-    view = "masonry";
-
-    // Remove "active" class from other buttons
-    document.querySelector("#view-type-grid")?.classList.remove("active");
-    document.querySelector("#view-type-list")?.classList.remove("active");
-    document.querySelector("#view-type-columns")?.classList.remove("active");
-
-    // Add "active" class to the clicked button
-    this.classList.add("active");
-
-    // Trigger the refresh button click
-    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
-  } catch (error) {
-    console.error("Error switching view to masonry:", error);
-  }
+  changeView("masonry");
+  view = "masonry";
 });
 
 document.getElementById("btn-home")?.addEventListener("click", async () => {
@@ -427,11 +403,11 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   toAppend.push(created);
 
   const accessed = document.createElement("p");
-  accessed.innerHTML = `Accessed<span>${formatDate(item.accessed)}</span>`;
+  accessed.innerHTML = `Last Accessed<span>${formatDate(item.accessed)}</span>`;
   toAppend.push(accessed);
 
   const modified = document.createElement("p");
-  modified.innerHTML = `Modified<span>${formatDate(item.modified)}</span>`;
+  modified.innerHTML = `Last Modified<span>${formatDate(item.modified)}</span>`;
   toAppend.push(modified);
 
   const location = document.createElement("p");
