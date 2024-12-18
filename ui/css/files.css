@@ -1,5 +1,5 @@
-div#content #items.grid {
-  padding: var(--items-padding);
+div#content #items-grid {
+  padding: var(--items-padding) var(--items-padding) 64px var(--items-padding);
   flex-grow: 1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(var(--item-width), 1fr));
@@ -8,35 +8,81 @@ div#content #items.grid {
   box-sizing: border-box;
   gap: 8px;
   justify-content: start;
+  width: 100%;
 }
 
-div#content #items.list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: start;
-  flex-grow: 1;
+div#content table:has(tbody.active) {
+  display: block;
+  overflow: auto;
+  width: 100%;
 }
 
-div#content #items.list button {
-  display: flex;
-  background-color: transparent;
-  flex-direction: row;
-  height: 32px;
-  padding: 8px;
+div#content table {
+  display: none;
+  padding: 16px 16px 64px 16px;
 }
-div#content #items.list button div.thumbnail {
-  height: 24px;
+
+div#content tbody#items-table {
+  table-layout: auto;
+  border-collapse: collapse;
+  display: table;
+  width: 100%;
+}
+
+div#content tbody#items-table tr {
+  border-bottom: 1px solid var(--bg-1);
+  box-sizing: border-box;
+}
+
+div#content tbody#items-table tr:last-child {
+  border: none;
+}
+
+#content #items-table tr td:nth-child(2) {
+  color: var(--text-b);
+}
+
+#content #items-table tr td {
+  color: var(--text-d1);
+  line-height: 0;
+  vertical-align: middle;
+}
+
+#content #items-table tr td:has(img) {
   width: 24px;
+  padding-right: 8px;
+  padding-left: 8px;
 }
 
-div#content #items.list button div.thumbnail img,
-div#content #items.list button div.thumbnail video {
-  height: 24px;
-  width: auto;
+#content #items-table tr td img {
+  width: 20px;
+  object-fit: contain;
+  height: 20px;
+  padding: 2px;
 }
 
-div#content #items.grid button {
+#content #items-table tr td * {
+  max-height: 24px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+#content #items-table tr:hover td {
+  color: var(--text-l1);
+  background-color: var(--bg-1);
+}
+
+#content #items-table tr.active td {
+  color: var(--text-l1);
+  background-color: var(--bg-1);
+}
+
+#content #items-table tr.active:hover td {
+  color: var(--text-l1);
+  background-color: var(--bg-2);
+}
+
+div#content #items-grid button {
   display: flex;
   flex-direction: column;
   max-width: var(--item-width);
@@ -53,7 +99,7 @@ div#content #items.grid button {
   transition: 80ms;
 }
 
-div#content #items.grid button div.thumbnail {
+div#content #items-grid button div.thumbnail {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -63,8 +109,8 @@ div#content #items.grid button div.thumbnail {
   overflow: hidden;
 }
 
-div#content #items.grid button div.thumbnail img,
-div#content #items.grid button div.thumbnail video {
+div#content #items-grid button div.thumbnail img,
+div#content #items-grid button div.thumbnail video {
   border-radius: 3px;
   height: auto;
   max-height: 100%;
@@ -72,38 +118,38 @@ div#content #items.grid button div.thumbnail video {
   width: auto;
 }
 
-div#content #items.grid button#btn-load-more {
+div#content #items-grid button#btn-load-more {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-div#content #items button.active {
+div#content #items-grid button.active {
   background-color: var(--bg-2);
 }
-div#content #items button.active p {
+div#content #items-grid button.active p {
   color: var(--text-l1) !important;
 }
 
-div#content #items button.active:hover {
+div#content #items-grid button.active:hover {
   background-color: var(--bg-2);
 }
 
-div#content #items button:hover {
+div#content #items-grid button:hover {
   background-color: var(--bg-1);
 }
 
-div#content #items.grid button p {
+div#content #items-grid button p {
   text-align: center;
 }
 
-div#content #items button p.size {
+div#content #items-grid button p.size {
   color: var(--text-d3);
   display: none;
 }
 
-div#content #items button p.name {
+div#content #items-grid button p.name {
   color: var(--text-b);
   /* margin-top: auto; */
 }
@@ -116,6 +162,8 @@ div#content div#selected-file {
   border-left: 1px solid var(--bg-1);
   padding: 32px 16px 32px 16px;
   width: var(--selected-item-width);
+  min-width: var(--selected-item-width);
+  max-width: var(--selected-item-width);
   justify-content: start;
   box-sizing: border-box;
   gap: 16px;
@@ -153,7 +201,6 @@ div#content div#selected-file div#actions {
   max-width: 100%;
   gap: 8px;
   grid-auto-flow: dense;
-
 }
 
 div#content div#selected-file div#actions button:hover {
@@ -205,10 +252,6 @@ div.chk-container {
   height: var(--button-height);
 }
 
-div#chk-walk-container {
-  margin-left: auto;
-}
-
 div.chk-container input:checked:hover + span.checkmark {
   background-color: var(--bg-2);
 }
@@ -232,29 +275,18 @@ div.chk-container span.checkmark {
   pointer-events: none;
 }
 
-div#chk-hide-text-container span.checkmark {
-  background-image: url("../assets/show_text.svg");
-}
-
-div#chk-hide-text-container input:checked + span.checkmark {
-  background-image: url("../assets/hide_text.svg");
-  background-color: var(--bg-1);
-}
-
-div#chk-walk-container span.checkmark {
+button#btn-walk {
   background-image: url("../assets/folder_open_outline.svg");
 }
 
-div#chk-walk-container input:checked + span.checkmark {
+button#btn-walk.active {
   background-image: url("../assets/folder_open_fill.svg");
-  background-color: var(--bg-1);
 }
 
-/* div#chk-show-thumbnails-container span.checkmark {
-  background-image: url("./assets/file.svg");
+button#btn-nowalk {
+  background-image: url("../assets/folders/folder_outline.svg");
 }
 
-div#chk-show-thumbnails-container input:checked + span.checkmark {
-  background-image: url("./assets/thumbnail.svg");
-  background-color: var(--bg-1);
-} */
+button#btn-nowalk.active {
+  background-image: url("../assets/folders/folder.svg");
+}

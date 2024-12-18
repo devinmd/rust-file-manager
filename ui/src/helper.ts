@@ -20,7 +20,7 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
   const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb"];
+  const sizes = ["Bytes", "KB", "MB", "GG", "TB", "PB", "EB", "ZB", "YB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -165,4 +165,56 @@ export function formatItemType(type: string): string {
   } else {
     return type.charAt(0).toUpperCase() + type.slice(1);
   }
+}
+
+export function changePage(page: string): void {
+  console.log(page);
+  document.querySelector("#settings").setAttribute("style", "display: none;");
+  document.querySelector("#home").setAttribute("style", "display: none;");
+  document.querySelector("#content").setAttribute("style", "display: none;");
+
+  switch (page) {
+    case "home":
+      document.querySelector("#home").setAttribute("style", "display: default;");
+
+      break;
+    case "settings":
+      document.querySelector("#settings").setAttribute("style", "display: default;");
+
+      break;
+    case "content":
+      document.querySelector("#content").setAttribute("style", "display: default;");
+
+      break;
+  }
+}
+
+export function changeView(v: string): void {
+  console.log(v);
+
+  // remove active from all buttons
+  document.querySelectorAll("#view-type-btns button").forEach((btn) => btn.classList.remove("active"));
+  // set one to active
+  document.querySelector(`#view-type-btns button#view-type-${v}`).classList.add("active");
+
+  // remove active class from all items list containers and hide
+  document.querySelectorAll(".items-container").forEach((c) => c.classList.remove("active"));
+  document.querySelectorAll(".items-container").forEach((c) => c.setAttribute("style", "display: none;"));
+
+  // set one to active
+  document.querySelector(`#items-${v}`).classList.add("active");
+  document.querySelector(`#items-${v}`).setAttribute("style", "display: default;");
+
+
+  switch (v) {
+    case "grid":
+      break;
+    case "table":
+      break;
+    case "columns":
+      break;
+    case "masonry":
+      break;
+  }
+  (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
 }

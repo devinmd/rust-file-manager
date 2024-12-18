@@ -9,16 +9,14 @@
 	<link rel="stylesheet" href="/ui/css/styles.css" />
 	<link rel="stylesheet" href="/ui/css/main.css" />
 	<link rel="stylesheet" href="/ui/css/files.css" />
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+	<!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+	<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
+	<!-- <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"> -->
 </head>
 
 <body>
 
 	<div id="app">
-
-
 		<div class="noselect" id="sidenav">
 			<div class="noselect">
 				<button id="btn-home" class="icon-left clear" style="background-image: url('./ui/assets/home.svg');">Home</button>
@@ -37,29 +35,23 @@
 			<p class="noselect">Recent</p>
 			<div class="noselect"></div>
 			<div style="margin-top: auto;"></div>
-			<button class="icon-left clear" style="background-image: url('./ui/assets/gear.svg');">Settings</button>
+			<button class="icon-left clear" style="background-image: url('./ui/assets/gear.svg');" id="btn-settings">Settings</button>
 
 		</div>
 
 		<div id="main">
 			<div id="top-bar">
 				<div id="path"></div>
+				<div style="margin-left: auto;"></div>
 
-				<div id="chk-walk-container" class="chk-container">
-					<input type="checkbox" id="chk-walk">
-					<span class="checkmark"></span>
+				<div class="btn-selector">
+					<button class="icon clear" id="btn-nowalk"></button>
+					<button class=" icon clear" id="btn-walk"></button>
 				</div>
-				<!-- <div id="chk-hide-text-container" class="chk-container">
-					<input type="checkbox" id="chk-hide-text">
-					<span class="checkmark"></span>
-				</div> -->
-				<!-- <div id="chk-show-thumbnails-container" class="chk-container"> -->
-				<!-- <input type="checkbox" id="chk-show-thumbnails"> -->
-				<!-- <span class="checkmark"></span> -->
-				<!-- </div> -->
-				<div id="view-selector">
+
+				<div class="btn-selector" id="view-type-btns">
 					<button class="clear icon" id="view-type-grid" style="background-image: url('./ui/assets/grid.svg');"></button>
-					<button class="clear icon" id="view-type-list" style="background-image: url('./ui/assets/list.svg');"></button>
+					<button class="clear icon" id="view-type-table" style="background-image: url('./ui/assets/list.svg');"></button>
 					<button class="clear icon" id="view-type-columns" style="background-image: url('./ui/assets/columns.svg');"></button>
 					<button class="clear icon" id="view-type-masonry" style="background-image: url('./ui/assets/masonry.svg');"></button>
 				</div>
@@ -73,19 +65,25 @@
 					<option value="size_true">Size small to big</option>
 				</select>
 			</div>
+			<div id="home">
+				<h1 id="greeting"></h1>
+				<h4>Drives</h4>
+				<div id="drives"></div>
+				<h4>Locations</h4>
+				<div id="locations"></div>
+				<h4>Favorites</h4>
+				<h4>Recents</h4>
+			</div>
+			<div id="settings">
+				<h1 class="noselect">Settings</h1>
+			</div>
 			<div id="content">
+				<div id="items-grid" class="items-container"></div>
+				<table>
+					<tbody id="items-table" class="items-container">
+					</tbody>
+				</table>
 
-
-				<div id="home">
-					<h1 id="greeting"></h1>
-					<h4>Drives</h4>
-					<div id="drives"></div>
-					<h4>Locations</h4>
-					<div id="locations"></div>
-					<h4>Favorites</h4>
-					<h4>Recents</h4>
-				</div>
-				<div id="items"></div>
 				<div id="selected-file"></div>
 			</div>
 

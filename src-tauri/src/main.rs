@@ -150,10 +150,7 @@ fn get_system_info() -> Result<SystemInfoStruct, String> {
             total_space: disk.total_space(),
             mount_point: disk.mount_point().to_string_lossy().to_string(),
             available_space: disk.available_space(),
-            available_space_formatted: format_size(disk.available_space()),
-            total_space_formatted: format_size(disk.total_space()),
             space_used: disk.total_space() - disk.available_space(),
-            space_used_formatted: format_size(disk.total_space() - disk.available_space()),
             is_removable: disk.is_removable(),
         });
     }
@@ -624,39 +621,5 @@ async fn open_folder_dialog() -> Result<String, String> {
             // Handle the case when the user cancels the dialog
             Err(String::from("Dialog was cancelled"))
         }
-    }
-}
-
-extern crate chrono;
-
-use chrono::{ DateTime, NaiveDateTime, Utc };
-
-fn format_timestamp(ms_since_epoch: Option<u64>) -> String {
-    match ms_since_epoch {
-        Some(ms) => {
-            let dt = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ms as i64, 0), Utc);
-            dt.format("%a, %-d %b %Y %H:%M").to_string()
-        }
-        None => String::from("Invalid timestamp"), // Handle the case where ms_since_epoch is None
-    }
-}
-
-// Helper function to format size
-fn format_size(size: u64) -> String {
-    const AMT: f64 = 1000.0;
-    const KB: f64 = AMT;
-    const MB: f64 = KB * AMT;
-    const GB: f64 = MB * AMT;
-    const TB: f64 = GB * AMT;
-    if size < (KB as u64) {
-        format!("{} Bytes", size)
-    } else if size < (MB as u64) {
-        format!("{:.1} KB", (size as f64) / KB)
-    } else if size < (GB as u64) {
-        format!("{:.1} MB", (size as f64) / MB)
-    } else if size < (TB as u64) {
-        format!("{:.1} GB", (size as f64) / GB)
-    } else {
-        format!("{:.1} TB", (size as f64) / TB)
     }
 }

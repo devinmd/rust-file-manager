@@ -36,7 +36,7 @@
   /* sizes */
   --top-bar-height: calc(var(--button-height) + 16px);
   --bottom-bar-height: 24px;
-  --sidenav-width: 15%;
+  --sidenav-width: 15vw;
   --selected-item-width: 30vw;
   --item-width: 120px;
 
@@ -46,6 +46,13 @@
 }
 
 .noselect {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+  cursor: default;
+}
+
+button,h1,p,tr,div,td,table {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
@@ -89,29 +96,14 @@ p {
 }
 
 p {
-  letter-spacing: 0.01em;
-}
-
-img,
-video {
-  max-width: 100%;
-  width: 100%;
-  /* image-rendering: optimizeSpeed;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -o-crisp-edges;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: pixelated;
-  image-rendering: optimize-contrast;
-  -ms-interpolation-mode: nearest-neighbor; */
-}
-
-p {
   margin: 0;
   color: var(--text-b);
   font-size: 12px;
   font-weight: 400;
   margin: 0;
   overflow-wrap: anywhere;
+  letter-spacing: 0.01em;
+
 }
 
 h1 {
@@ -180,7 +172,7 @@ button.clear:hover {
 
 button.icon {
   background-position:center;
-  background-size: 16px;
+  background-size: 18px;
   width: 32px;
   background-repeat: no-repeat; 
 }

@@ -1,6 +1,7 @@
 #app {
   display: flex;
   flex-direction: row;
+  overflow: hidden;
 }
 
 #main {
@@ -15,10 +16,13 @@
   max-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
   min-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
   box-sizing: border-box;
+  max-width: calc(100vw - var(--sidenav-width));
 }
 
 #sidenav {
   width: var(--sidenav-width);
+  min-width: var(--sidenav-width);
+  max-width: var(--sidenav-width);
   height: 100vh;
   border-right: 1px solid var(--bg-1);
   box-sizing: border-box;
@@ -55,7 +59,10 @@
   padding: 32px;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
+  min-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
   gap: 8px;
+  box-sizing: border-box;
 }
 
 #home #drives {
@@ -71,6 +78,15 @@
 
 #home #drives div p {
   font-size: 14px;
+}
+#settings {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
+  min-height: calc(100vh - var(--top-bar-height) - 1px - var(--bottom-bar-height) - 1px);
+  gap: 8px;
+  box-sizing: border-box;
 }
 
 #top-bar {
@@ -103,49 +119,61 @@
   object-fit: cover;
 }
 
-#top-bar div#view-selector {
+#top-bar div.btn-selector {
   display: flex;
+  box-shadow: 0px 0px 1px 1px var(--bg-1);
+  border-radius: var(--button-radius);
 }
 
-#top-bar div#view-selector button.active:hover {
+#top-bar div.btn-selector button.active:hover {
   background-color: var(--bg-2);
 }
 
-#top-bar div#view-selector button.active {
+#top-bar div.btn-selector button.active {
   background-color: var(--bg-1);
 }
-#top-bar div#view-selector button:first-child {
+#top-bar div.btn-selector button:first-child {
   border-bottom-left-radius: var(--button-radius);
   border-top-left-radius: var(--button-radius);
 }
 
-#top-bar div#view-selector button:last-child {
+#top-bar div.btn-selector button:last-child {
   border-bottom-right-radius: var(--button-radius);
   border-top-right-radius: var(--button-radius);
 }
 
-#top-bar div#view-selector button {
+#top-bar div.btn-selector button {
   border-radius: 0;
-  width: 24px;
+  width: 32px;
 }
 
 #bottom-bar {
   height: var(--bottom-bar-height);
   display: flex;
   flex-direction: row;
+  overflow: hidden;
   align-items: center;
   padding-left: 8px;
   border-top: 1px solid var(--bg-1);
   z-index: 100;
+  max-width: 100%;
 }
 #bottom-bar div {
   display: flex;
   flex-direction: row;
+  max-width: 100%;
   align-items: center;
   gap: 16px;
 }
 
 #bottom-bar div p {
   font-size: 12px;
+  white-space: nowrap;
   color: var(--text-d3);
+}
+
+#bottom-bar div p:nth-child(4){
+  overflow: hidden;
+  max-width: 65%;
+  text-overflow: ellipsis;
 }

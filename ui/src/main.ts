@@ -4,7 +4,16 @@
 // const { open } = window.__TAURI__.api;
 
 // import helper functions
-import { formatMs, formatBytes, formatDate, generateItemPreview, Item,formatItemType } from "./helper";
+import {
+  formatMs,
+  formatBytes,
+  formatDate,
+  generateItemPreview,
+  Item,
+  formatItemType,
+  changePage,
+  changeView,
+} from "./helper";
 
 //
 const { invoke } = (window as any).__TAURI__.tauri;
@@ -12,7 +21,8 @@ const { invoke } = (window as any).__TAURI__.tauri;
 // globals
 var view = "grid";
 var selectedItem = { index: -1, path: "" };
-const page_size = 64;  // increasing page size does not have an effect on loading time
+const page_size = 64; // increasing page size does not have an effect on loading time
+var recursive = false;
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
@@ -24,6 +34,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // set view to grid REMOVE LATER
   (document.querySelector("#view-type-grid") as HTMLButtonElement).click();
+  // set recurisve to false
+  (document.querySelector("#btn-nowalk") as HTMLButtonElement)?.click();
 });
 
 async function get_userdata() {
@@ -56,12 +68,27 @@ async function get_system_info() {
     let name = document.createElement("p");
     name.innerHTML = `${d.name} (${d.mount_point})`;
     let text = document.createElement("p");
-    text.innerHTML = `${d.available_space_formatted} of ${d.total_space_formatted} free`;
+    text.innerHTML = `${formatBytes(d.available_space)} of ${formatBytes(d.total_space)} free`;
 
     container.append(name, text);
     document.querySelector("#drives").append(container);
   }
 }
+
+// disable and enable recurisve buttons
+document.getElementById("btn-walk")?.addEventListener("click", async function () {
+  recursive = true;
+  document.querySelector("#btn-nowalk")?.classList.remove("active");
+  this.classList.add("active");
+  (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+});
+
+document.getElementById("btn-nowalk")?.addEventListener("click", async function () {
+  recursive = false;
+  document.querySelector("#btn-walk")?.classList.remove("active");
+  this.classList.add("active");
+  (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+});
 
 document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
   // open folder
@@ -75,68 +102,19 @@ document.getElementById("btn-openfolder")?.addEventListener("click", async () =>
   }
 });
 
-// document.getElementById("chk-hide-text")?.addEventListener("click", async () => {
-//   // refresh
-//   try {
-//     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-//   } catch {}
-// });
-// document.getElementById("chk-show-thumbnails")?.addEventListener("click", async () => {
-//   // refresh
-//   try {
-//     (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-//   } catch {}
-// });
-
 document.getElementById("sort")?.addEventListener("input", async () => {
-  // user changed sort
-  try {
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
-});
-
-document.getElementById("chk-walk")?.addEventListener("input", async () => {
-  // user changed sort
-  try {
-    (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
-  } catch {}
+  // user changed sort, refresh
+  (document.querySelector("#btn-refresh") as HTMLButtonElement).click();
 });
 
 document.getElementById("view-type-grid")?.addEventListener("click", async function () {
-  try {
-    view = "grid";
-
-    // Remove "active" class from other buttons
-    document.querySelector("#view-type-list")?.classList.remove("active");
-    document.querySelector("#view-type-columns")?.classList.remove("active");
-    document.querySelector("#view-type-masonry")?.classList.remove("active");
-
-    // Add "active" class to the clicked button
-    this.classList.add("active");
-
-    // Trigger the refresh button click
-    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
-  } catch (error) {
-    console.error("Error switching view to grid:", error);
-  }
+  changeView("grid");
+  view = "grid";
 });
-document.getElementById("view-type-list")?.addEventListener("click", async function () {
-  try {
-    view = "list";
 
-    // Remove "active" class from other buttons
-    document.querySelector("#view-type-grid")?.classList.remove("active");
-    document.querySelector("#view-type-columns")?.classList.remove("active");
-    document.querySelector("#view-type-masonry")?.classList.remove("active");
-
-    // Add "active" class to the clicked button
-    this.classList.add("active");
-
-    // Trigger the refresh button click
-    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
-  } catch (error) {
-    console.error("Error switching view to list:", error);
-  }
+document.getElementById("view-type-table")?.addEventListener("click", async function () {
+  changeView("table");
+  view = "table";
 });
 
 document.getElementById("view-type-columns")?.addEventListener("click", async function () {
@@ -178,25 +156,23 @@ document.getElementById("view-type-masonry")?.addEventListener("click", async fu
 });
 
 document.getElementById("btn-home")?.addEventListener("click", async () => {
-  // home butotn
-  document.querySelector("#home").setAttribute("style", "display: flex;");
-  document.querySelector("#items").setAttribute("style", "display: none;");
-  document.querySelector("#selected-file").setAttribute("style", "display: none;");
+  // home button
+  changePage("home");
 });
 
+document.getElementById("btn-settings")?.addEventListener("click", async () => {
+  // settings button
+  changePage("settings");
+});
 // 5.5 seconds for 35000 files or 0.15 milliseconds per file
 
 async function goToFolder(selected_folder_path: string) {
   // get start time
   const startTime = Date.now();
-  document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
-  document.querySelector("#bottom-bar-info").setAttribute("style", "display: none;");
+  changePage("content");
 
   // get the selected sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
-
-  // recurisve or not
-  const walk = (document.querySelector("#chk-walk") as HTMLInputElement).checked;
 
   console.log("GOING TO FOLDER:");
   console.log(selected_folder_path);
@@ -204,13 +180,13 @@ async function goToFolder(selected_folder_path: string) {
   console.log("WITH SORT:");
   console.log(sort);
 
-  console.log("REQUESTED DATA AT "+formatMs(Date.now() - startTime));
+  console.log("REQUESTED DATA AT " + formatMs(Date.now() - startTime));
 
   let data = await invoke("get_items_from_path", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
     ascending: /true/i.test(sort[1]),
-    walk: walk,
+    walk: recursive,
     dotfiles: false,
   });
 
@@ -223,11 +199,10 @@ async function goToFolder(selected_folder_path: string) {
 
   selectedItem.index = -1;
 
-  console.log("RECEIVED DATA AT "+formatMs(Date.now() - startTime));
+  console.log("RECEIVED DATA AT " + formatMs(Date.now() - startTime));
   console.log("displaying items...");
   displayItems(data);
-  console.log("DISPLAYED ITEMS AT "+formatMs(Date.now() - startTime));
-
+  console.log("DISPLAYED ITEMS AT " + formatMs(Date.now() - startTime));
 
   // calculate and display elapsed time of getting items and then displaying them
   let elapsedTime = formatMs(Date.now() - startTime);
@@ -268,14 +243,12 @@ function generatePathButtons(vec: string[]) {
 
 function displayItems(data: Folder): void {
   // hide home and show files
-  document.querySelector("#home").setAttribute("style", "display: none;");
-  document.querySelector("#items").setAttribute("style", "display: default;");
-  document.querySelector("#selected-file").setAttribute("style", "display: flex;");
+  changePage("content");
 
-  const itemsContainer = document.querySelector("#items");
-
+  const itemsContainer = document.querySelector(".items-container.active");
+  console.log(itemsContainer);
   // clear
-  itemsContainer.innerHTML = "";
+  document.querySelectorAll(".items-container").forEach((c) => (c.innerHTML = ""));
 
   // make path buttons
   generatePathButtons(data.path.split("/"));
@@ -288,14 +261,13 @@ function displayItems(data: Folder): void {
     let empty_folder_text = document.createElement("h5");
     empty_folder_text.innerHTML = `This Folder is Empty`;
     empty_folder_text.className = "empty-folder-text";
-    document.querySelector("#items").append(empty_folder_text);
+    document.querySelector("#content").append(empty_folder_text);
     console.log("displayed files (folder is empty)");
     return;
   }
 
   // get the view
   console.log("VIEW: " + view);
-  itemsContainer.className = view;
 
   const load_more = document.createElement("button");
   load_more.innerHTML = "Load More";
@@ -323,27 +295,55 @@ function displayItems(data: Folder): void {
     for (let i = 0; i < itemsList.length; i++) {
       const item = itemsList[i];
 
-      const itemContainer = document.createElement("button") as HTMLButtonElement;
+      const thispage = current_page;
 
-      const thispage = current_page
+      let itemContainer;
+      let toAppend = [];
 
-      // generate item thumbnail
-      let thumbnail = document.createElement("div");
-      thumbnail.className = "thumbnail";
-      thumbnail.append(generateItemPreview(item));
+      if (view == "grid") {
+        itemContainer = document.createElement("button") as HTMLButtonElement;
 
-      // item name
-      const itemName = document.createElement("p");
-      itemName.innerHTML = item.name;
-      itemName.className = "name";
+        // generate item thumbnail
+        let thumbnail = document.createElement("div");
+        thumbnail.className = "thumbnail";
+        thumbnail.append(generateItemPreview(item));
 
-      // item size
-      const item_size = document.createElement("p");
-      item_size.innerHTML = formatBytes(item.size_bytes);
-      item_size.className = "size";
+        // item name
+        const itemName = document.createElement("p");
+        itemName.innerHTML = item.name;
+        itemName.className = "name";
 
-      // append
-      itemContainer.append(thumbnail, itemName, item_size);
+        // item size
+        const item_size = document.createElement("p");
+        item_size.innerHTML = formatBytes(item.size_bytes);
+        item_size.className = "size";
+
+        toAppend.push(...[thumbnail, itemName, item_size]);
+      } else if (view == "table") {
+        itemContainer = document.createElement("tr") as HTMLTableRowElement;
+        // generate item thumbnail
+        let thumbnailWrapper = document.createElement("td");
+        thumbnailWrapper.className = "thumbnail";
+        thumbnailWrapper.append(generateItemPreview(item));
+
+        // item name
+        const itemNameWrapper = document.createElement("td");
+        const itemName = document.createElement("div");
+        itemName.innerHTML = item.name;
+        itemName.className = "name";
+        itemNameWrapper.append(itemName);
+        // item size
+        const itemSizeWrapper = document.createElement("td");
+        const itemSize = document.createElement("div");
+        itemSize.innerHTML = formatBytes(item.size_bytes);
+        itemSize.className = "size";
+        itemSizeWrapper.append(itemSize);
+
+        //
+        toAppend.push(...[thumbnailWrapper, itemNameWrapper, itemSizeWrapper]);
+      }
+
+      itemContainer.append(...toAppend);
 
       // set onclick for item container to select that item
       itemContainer.onclick = function () {
@@ -381,18 +381,16 @@ interface Folder {
 }
 
 function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
-
-  if(!item) return
+  if (!item) return;
 
   // add active class
-  document.querySelectorAll("#items button.active").forEach((btn) => btn.classList.remove("active"));
+  document.querySelectorAll(".items-container.active .active").forEach((btn) => btn.classList.remove("active"));
   itemContainer.classList.add("active");
 
-  
-  document.querySelector('#selected-item-index').innerHTML = index.toString()
-  document.querySelector('#selected-item-path').innerHTML = item.path
-  if(item.size_bytes) document.querySelector('#selected-item-size').innerHTML = formatBytes(item.size_bytes)
-  if(!item.size_bytes) document.querySelector('#selected-item-size').innerHTML = ""
+  document.querySelector("#selected-item-index").innerHTML = index.toString();
+  document.querySelector("#selected-item-path").innerHTML = item.path;
+  if (item.size_bytes) document.querySelector("#selected-item-size").innerHTML = formatBytes(item.size_bytes);
+  if (!item.size_bytes) document.querySelector("#selected-item-size").innerHTML = "";
 
   selectedItem.index = index;
   selectedItem.path = item.path;
@@ -475,7 +473,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(btn_open, btn_rename, btn_delete, btn_favorite,btn_duplicate);
+  actions.append(btn_open, btn_rename, btn_delete, btn_favorite, btn_duplicate);
 
   const imgContainer = document.createElement("div");
   imgContainer.id = "selected-item-img-container";
@@ -491,8 +489,8 @@ function deleteItem(path: String) {
       // delete the item from file list
       // small delay on the removing because it waits for the send file to trash
       console.log(selectedItem.index);
-      console.log(document.querySelectorAll("#items button")[selectedItem.index]);
-      document.querySelectorAll("#items button")[selectedItem.index].remove();
+      console.log(document.querySelectorAll(".items-container button")[selectedItem.index]);
+      document.querySelectorAll(".items-container button")[selectedItem.index].remove();
       selectedItem.index -= 1;
       nextItem();
     })
@@ -548,19 +546,19 @@ const keyPress = (event: KeyboardEvent) => {
 document.addEventListener("keydown", keyPress);
 
 function openItem() {
-  let itemList = document.querySelector("#items").children;
+  let itemList = document.querySelector(".items-container.active").children;
   let item = itemList[selectedItem.index] as HTMLButtonElement;
   item.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
 }
 
 function nextItem() {
-  let itemList = document.querySelector("#items").children;
+  let itemList = document.querySelector(".items-container.active").children;
   let nextItemElem = itemList[selectedItem.index + 1] as HTMLButtonElement;
   if (nextItemElem) nextItemElem.click();
 }
 
 function previousItem() {
-  let itemList = document.querySelector("#items").children;
+  let itemList = document.querySelector(".items-container.active").children;
   let previousItemElem = itemList[selectedItem.index - 1] as HTMLButtonElement;
   if (previousItemElem) previousItemElem.click();
 }

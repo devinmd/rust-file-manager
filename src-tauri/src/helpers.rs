@@ -37,10 +37,7 @@ pub struct DiskInfoStruct {
     pub total_space: u64,
     pub mount_point: String,
     pub available_space: u64,
-    pub available_space_formatted: String,
-    pub total_space_formatted: String,
     pub space_used: u64,
-    pub space_used_formatted: String,
     pub is_removable: bool,
 }
 
