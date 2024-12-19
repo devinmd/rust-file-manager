@@ -2,7 +2,7 @@ div#content #items-grid {
   padding: var(--items-padding) var(--items-padding) 64px var(--items-padding);
   flex-grow: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--item-width), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--grid-item-width), 1fr));
   grid-auto-rows: min-content;
   overflow-y: auto;
   box-sizing: border-box;
@@ -31,7 +31,6 @@ div#content tbody#items-table {
 
 div#content tbody#items-table tr {
   border-bottom: 1px solid var(--bg-1);
-  box-sizing: border-box;
 }
 
 div#content tbody#items-table tr:last-child {
@@ -42,53 +41,58 @@ div#content tbody#items-table tr:last-child {
   color: var(--text-b);
 }
 
+#content #items-table tr td:last-child() {
+  padding-right: 8px;
+}
+
 #content #items-table tr td {
   color: var(--text-d1);
   line-height: 0;
   vertical-align: middle;
 }
 
-#content #items-table tr td:has(img) {
-  width: 24px;
-  padding-right: 8px;
-  padding-left: 8px;
+#content #items-table tr td:has(img),
+#content #items-table tr td:has(video) {
+  height: var(--table-item-height);
+  max-height: var(--table-item-height);
+  width: var(--table-item-height);
+  text-align: center;
+  box-sizing: border-box;
+  padding: 2px 8px 2px 8px;
 }
 
-#content #items-table tr td img {
-  width: 20px;
+#content #items-table tr td img,
+#content #items-table tr td video {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
-  height: 20px;
-  padding: 2px;
 }
 
 #content #items-table tr td * {
-  max-height: 24px;
   font-size: 12px;
   vertical-align: middle;
 }
 
-#content #items-table tr:hover td {
-  color: var(--text-l1);
-  background-color: var(--bg-1);
-}
-
 #content #items-table tr.active td {
   color: var(--text-l1);
+  background-color: var(--bg-2);
+}
+
+#content #items-table tr:hover td {
   background-color: var(--bg-1);
 }
 
 #content #items-table tr.active:hover td {
-  color: var(--text-l1);
   background-color: var(--bg-2);
 }
 
 div#content #items-grid button {
   display: flex;
   flex-direction: column;
-  max-width: var(--item-width);
+  max-width: var(--grid-item-width);
   background-color: transparent;
   gap: 8px;
-  /* padding: 8px 8px 16px 8px; */
   border-radius: 8px;
   padding: 16px;
   cursor: default;

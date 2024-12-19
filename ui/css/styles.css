@@ -93,9 +93,11 @@
   height: var(--topnav-height);
   display: flex;
   flex-direction: row;
+  box-sizing: border-box;
   align-items: center;
   gap: 16px;
   padding: 0 8px;
+  max-width: calc(100vw - var(--sidenav-width));
   border-bottom: 1px solid var(--bg-1);
 }
 
@@ -121,7 +123,10 @@
 
 #topnav div.btn-selector {
   display: flex;
-  box-shadow: 0px 0px 1px 1px var(--bg-1);
+  height: 24px;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid var(--bg-1);
   border-radius: var(--button-radius);
 }
 
@@ -160,19 +165,28 @@
 }
 #bottom-bar div {
   display: flex;
+  height: 100%;
   flex-direction: row;
   max-width: 100%;
   align-items: center;
   gap: 16px;
 }
 
-#bottom-bar div p {
+#bottom-bar div.icon {
+  background-position: 0 center;
+  background-size: 14px 14px;
+  background-repeat: no-repeat;
+  padding-left: 18px;
+}
+
+#bottom-bar div div {
   font-size: 12px;
+  height: 100%;
   white-space: nowrap;
   color: var(--text-d3);
 }
 
-#bottom-bar div p:nth-child(4){
+#bottom-bar div div:nth-child(4){
   overflow: hidden;
   max-width: 65%;
   text-overflow: ellipsis;

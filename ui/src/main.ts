@@ -197,19 +197,18 @@ async function goToFolder(selected_folder_path: string) {
   if (historyIndex == 0) {
     // no more previous items
     document.querySelector("#btn-back").classList.add("disabled");
-  }
-  if (historyIndex > 0) {
+  } else {
     // there are previous items
     document.querySelector("#btn-back").classList.remove("disabled");
-  }
-  if (historyIndex == history.length - 1) {
-    // no more items ahead
-    document.querySelector("#btn-forward").classList.add("disabled");
   }
   if (historyIndex < history.length - 1) {
     // there are items ahead
     document.querySelector("#btn-forward").classList.remove("disabled");
+  } else {
+    // no more items ahead
+    document.querySelector("#btn-forward").classList.add("disabled");
   }
+
   console.log("HISTORY");
   console.log(history);
   console.log(historyIndex);
@@ -428,7 +427,8 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   selectedItem.index = index;
   selectedItem.path = item.path;
-  console.log(index);
+  console.log("SELECTED ITEM");
+  console.log(selectedItem);
 
   const sidebar = document.querySelector("#selected-file");
   sidebar.innerHTML = "";
@@ -534,6 +534,9 @@ function deleteItem(path: String) {
     });
 }
 
+// disable context menu
+document.addEventListener("contextmenu", (event) => event.preventDefault());
+
 // navigate selected item with arrow keys
 const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
@@ -571,6 +574,24 @@ const keyPress = (event: KeyboardEvent) => {
         // reload
         location.reload();
       }
+      break;
+    case "c":
+      if (event.ctrlKey || event.metaKey) {
+        // ctrl + c copy
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      break;
+    case "v":
+      if (event.ctrlKey || event.metaKey) {
+        // ctrl + v paste
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      break;
+    case "space":
+      event.preventDefault();
+      event.stopPropagation();
       break;
     default:
       break;

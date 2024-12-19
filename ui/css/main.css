@@ -38,7 +38,8 @@
   --bottom-bar-height: 24px;
   --sidenav-width: 15vw;
   --selected-item-width: 30vw;
-  --item-width: 120px;
+  --grid-item-width: 120px;
+  --table-item-height: 32px;
 
   /*  padding */
   --items-padding: 32px;
