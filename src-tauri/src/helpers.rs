@@ -17,7 +17,7 @@ pub struct ItemInfoStruct {
 // container of items with additional information, this is what is returned to the frontend
 #[derive(Serialize)]
 pub struct ItemsInfoContainerStruct {
-    pub path: String, // path of the container of the list of items
+    pub path: String,               // path of the container of the list of items
     pub items: Vec<ItemInfoStruct>, // list of items
 }
 
@@ -44,7 +44,7 @@ pub struct DiskInfoStruct {
 // system (computer) information
 #[derive(Serialize)]
 pub struct SystemInfoStruct {
-    pub os: Option<String>, // os
+    pub os: Option<String>,      // os
     pub version: Option<String>, // os version
     pub name: Option<String>,
     pub disks: Vec<DiskInfoStruct>, // list of disks

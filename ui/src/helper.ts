@@ -1,4 +1,5 @@
-const { convertFileSrc } = (window as any).__TAURI__.tauri;
+import { convertFileSrc } from "@tauri-apps/api/core";
+
 
 export interface Item {
   item_type: string;
@@ -12,6 +13,24 @@ export interface Item {
   modified: number;
   accessed: number;
   created: number;
+}
+
+export interface UserData {
+  theme: string;
+  last_folder: string;
+  view: string;
+}
+
+export interface SystemInfo {
+  disks: object;
+  os: string;
+  version: string;
+  name: string;
+}
+
+export interface ItemsList {
+  items: Item[];
+  path: string;
 }
 
 export function formatBytes(bytes: number, decimals: number = 2): string {

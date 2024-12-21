@@ -1,9 +1,10 @@
-node_modules/*
-src-tauri/target/*
+node_modules
+src-tauri/target
+src-tauri/gen
 
 .DS_Store
 .Thumbs.db
 package-lock.json
-.vscode/*
+.vscode
 
 appdata.db

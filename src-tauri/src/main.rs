@@ -6,11 +6,11 @@
 // import helpers & structs
 mod helpers;
 use helpers::{
-    ItemsInfoContainerStruct,
-    UserDataStruct,
-    SystemInfoStruct,
-    ItemInfoStruct,
     DiskInfoStruct,
+    ItemInfoStruct,
+    ItemsInfoContainerStruct,
+    SystemInfoStruct,
+    UserDataStruct,
 }; // Bring specific structs into scope
 
 extern crate rusqlite;
@@ -42,9 +42,11 @@ fn main() {
 
     let _app = tauri::Builder
         ::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(
             tauri::generate_handler![
-                open_folder_dialog,
+                // open_folder_dialog,
                 open_file_in_default_app,
                 send_file_to_trash,
                 get_items_from_path,
@@ -228,7 +230,11 @@ fn get_userdata() -> Result<UserDataStruct, String> {
         }
     };
 
-    let data = UserDataStruct { last_folder, theme, view };
+    let data = UserDataStruct {
+        last_folder,
+        theme,
+        view,
+    };
     Ok(data)
 }
 
@@ -257,14 +263,13 @@ fn read_directory_to_vec(
             .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
             .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
             .filter(|path| path.is_file()) // Only keep files
-            .filter(
-                |path|
-                    dotfiles ||
+            .filter(|path| {
+                dotfiles ||
                     !path
                         .file_name()
                         .and_then(|name| name.to_str())
                         .map_or(false, |name| name.starts_with('.'))
-            ) // Exclude dotfiles if dotfiles is false
+            }) // Exclude dotfiles if dotfiles is false
             .collect();
         Ok(entries)
     } else {
@@ -281,14 +286,13 @@ fn read_directory_to_vec(
             .filter_map(|entry| entry.ok()) // Ignore errors and only keep Ok entries
             .filter_map(|entry| entry.path().canonicalize().ok()) // Convert DirEntry to absolute PathBuf and ignore errors
             .map(|path| strip_prefix(&path)) // Strip the "\\?\" prefix if on Windows
-            .filter(
-                |path|
-                    dotfiles ||
+            .filter(|path| {
+                dotfiles ||
                     !path
                         .file_name()
                         .and_then(|name| name.to_str())
                         .map_or(false, |name| name.starts_with('.'))
-            ) // Exclude dotfiles if dotfiles is false
+            }) // Exclude dotfiles if dotfiles is false
             .collect();
 
         Ok(vec)
@@ -601,25 +605,25 @@ fn sort_items(folders: &mut Vec<ItemInfoStruct>, sort_by: &str, ascending: bool)
     }
 }
 
-#[tauri::command]
-async fn open_folder_dialog() -> Result<String, String> {
-    use std::path::PathBuf;
-    use tauri::api::dialog::blocking::FileDialogBuilder;
+// #[tauri::command]
+// async fn open_folder_dialog() -> Result<String, String> {
+//     use std::path::PathBuf;
+//     use tauri::api::dialog::FileDialogBuilder;
 
-    // Show the folder dialog
-    let dialog_result: Option<PathBuf> = FileDialogBuilder::new().pick_folder();
+//     // Show the folder dialog asynchronously
+//     let dialog_result: Option<PathBuf> = FileDialogBuilder::new().pick_folder().await;
 
-    match dialog_result {
-        Some(selected_folder) => {
-            // user selected a folder to open
-            // Convert the selected folder path to a string
-            let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
-            println!("USER SELECTED PATH FROM DIALOG: {}", path);
-            Ok(path)
-        }
-        None => {
-            // Handle the case when the user cancels the dialog
-            Err(String::from("Dialog was cancelled"))
-        }
-    }
-}
+//     match dialog_result {
+//         Some(selected_folder) => {
+//             // user selected a folder to open
+//             // Convert the selected folder path to a string
+//             let path: String = selected_folder.to_string_lossy().to_string().replace("\\", "/");
+//             println!("USER SELECTED PATH FROM DIALOG: {}", path);
+//             Ok(path)
+//         }
+//         None => {
+//             // Handle the case when the user cancels the dialog
+//             Err(String::from("Dialog was cancelled"))
+//         }
+//     }
+// }

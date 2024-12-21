@@ -1,8 +1,3 @@
-// import { event } from "@tauri-apps/api";
-// import { appDataDir, join } from "@tauri-apps/api/path";
-// import { convertFileSrc } from "@tauri-apps/api/tauri";
-// const { open } = window.__TAURI__.api;
-
 // import helper functions
 import {
   formatMs,
@@ -12,11 +7,15 @@ import {
   Item,
   formatItemType,
   changePage,
+  UserData,
   changeView,
+  SystemInfo,
+  ItemsList,
 } from "./helper";
 
 //
-const { invoke } = (window as any).__TAURI__.tauri;
+import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 
 // globals
 var view = "grid";
@@ -42,7 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function get_userdata() {
   // get user data here, theme, last folder, etc.
-  const data = await invoke("get_userdata");
+  const data: UserData = await invoke("get_userdata");
   console.log("RECEIVED USER DATA:");
   console.log(data);
 
@@ -58,7 +57,7 @@ async function get_userdata() {
 }
 
 async function get_system_info() {
-  const data = await invoke("get_system_info");
+  const data: SystemInfo = await invoke("get_system_info");
   console.log("RECEIVED SYSTEM INFO:");
   console.log(data);
   let disks = data.disks;
@@ -111,7 +110,15 @@ document.getElementById("btn-forward")?.addEventListener("click", async function
 document.getElementById("btn-openfolder")?.addEventListener("click", async () => {
   // open folder
   try {
-    const selected_folder_path = await invoke("open_folder_dialog");
+    // const selected_folder_path = await invoke("open_folder_dialog");
+
+    // Open a dialog
+    const selected_folder_path = await open({
+      multiple: false,
+      directory: true,
+    });
+    console.log(selected_folder_path);
+    // Prints file path or URI
     console.log("selected folder, going to it");
     console.log(selected_folder_path);
     goToFolder(selected_folder_path);
@@ -215,7 +222,7 @@ async function goToFolder(selected_folder_path: string) {
 
   console.log("REQUESTED DATA AT " + formatMs(Date.now() - startTime));
 
-  let data = await invoke("get_items_from_path", {
+  let data: ItemsList = await invoke("get_items_from_path", {
     selectedFolder: selected_folder_path,
     sort: sort[0],
     ascending: /true/i.test(sort[1]),
@@ -274,7 +281,7 @@ function generatePathButtons(vec: string[]) {
   }
 }
 
-function displayItems(data: Folder): void {
+function displayItems(data: ItemsList): void {
   // hide home and show files
   changePage("content");
 
@@ -407,13 +414,6 @@ function displayItems(data: Folder): void {
   }
 
   console.log("displayed files");
-}
-
-interface Folder {
-  items: Item[];
-  name: string;
-  item_type: string;
-  path: string;
 }
 
 function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
