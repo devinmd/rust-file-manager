@@ -85,8 +85,12 @@
   flex-direction: column;
   max-height: calc(100vh - var(--topnav-height) - 1px - var(--bottom-bar-height) - 1px);
   min-height: calc(100vh - var(--topnav-height) - 1px - var(--bottom-bar-height) - 1px);
-  gap: 8px;
+  gap: 16px;
   box-sizing: border-box;
+}
+
+#settings h1 {
+  margin-bottom: 16px;
 }
 
 #topnav {
@@ -135,7 +139,7 @@
 }
 
 #topnav div.btn-selector button.active {
-  background-color: var(--bg-1);
+  background-color: var(--bg-2);
 }
 #topnav div.btn-selector button:first-child {
   border-bottom-left-radius: var(--button-radius);

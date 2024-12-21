@@ -33,6 +33,7 @@ FEATURES
 - show or hide hidden files (dotfiles)
 - store low resolution thumbnails especially for videos
 - fullscreen preview on spacebar click
+- set custom file icons to match folder names in settings and change the defaults
 
 FRONTEND
 - right click context menu with actions

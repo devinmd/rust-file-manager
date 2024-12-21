@@ -86,6 +86,11 @@ export function generateItemPreview(
         case "pictures":
           elem.src = "ui/assets/folders/photos.svg";
           break;
+        case "apps":
+        case "applications":
+        case "games":
+          elem.src = "ui/assets/folders/apps.svg";
+          break;
         case "videos":
           elem.src = "ui/assets/folders/videos.svg";
           break;
@@ -96,6 +101,9 @@ export function generateItemPreview(
         case "films":
         case "film":
           elem.src = "ui/assets/folders/movies.svg";
+          break;
+        case "screenshots":
+          elem.src = "ui/assets/folders/screenshots.svg";
           break;
         case "users":
           elem.src = "ui/assets/folders/users.svg";
@@ -178,15 +186,12 @@ export function changePage(page: string): void {
   switch (page) {
     case "home":
       document.querySelector("#home").setAttribute("style", "display: default;");
-
       break;
     case "settings":
       document.querySelector("#settings").setAttribute("style", "display: default;");
-
       break;
     case "content":
       document.querySelector("#content").setAttribute("style", "display: default;");
-
       break;
   }
 }

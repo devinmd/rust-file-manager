@@ -383,10 +383,13 @@ function displayItems(data: Folder): void {
         selectItem(item, itemContainer, thispage * page_size + i);
       };
 
-      // open file on double click
+      // select the first item
+      if (i == 0) itemContainer.click();
+
+      // handle double click
       itemContainer.ondblclick = function () {
         if (item.item_type == "folder") {
-          // if is folder, open the folder in finder
+          // if is folder, open the folder in app
           goToFolder(item.path);
         } else {
           // else, open the file in default app
@@ -436,7 +439,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   let toAppend = [];
 
   // file name
-  const item_name = document.createElement("p");
+  const item_name = document.createElement("h3");
   item_name.id = "item-name";
   item_name.innerHTML = item.name;
 
@@ -474,40 +477,35 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   info.append(...toAppend);
 
-  // btns
-  const btn_delete = document.createElement("button");
-  btn_delete.className = "icon-center";
-  btn_delete.innerHTML = "<img src='./ui/assets/trash.svg'>Delete";
-  btn_delete.onclick = function () {
-    deleteItem(item.path);
-  };
-  // const rename_input = document.createElement("input");
-  // rename_input.type = "text";
-  // rename_input.placeholder = "New Name";
-  // rename_input.value = item.name;
-  const btn_rename = document.createElement("button");
-  btn_rename.className = "icon-center";
-  btn_rename.innerHTML = "<img src='./ui/assets/rename.svg'>Rename";
-  const btn_favorite = document.createElement("button");
-  btn_favorite.className = "icon-center";
-  btn_favorite.innerHTML = "<img src='./ui/assets/heart.svg'>Favorite";
-  const btn_duplicate = document.createElement("button");
-  btn_duplicate.className = "icon-center";
-  btn_duplicate.innerHTML = "<img src='./ui/assets/duplicate.svg'>Duplicate";
-  // btn_rename.onclick = function () {
-  // const new_name = rename_input.value;
-  // invoke("rename_item", { path: item.path, new: item.path + "test" });
-  // };
-  const btn_open = document.createElement("button");
-  btn_open.className = "icon-center";
-  btn_open.innerHTML = "<img src='./ui/assets/open.svg'>Open";
-  btn_open.onclick = function () {
+  // action buttons
+
+  // helper
+  function createButton(className: string, imgSrc: string, text: string): HTMLButtonElement {
+    return Object.assign(document.createElement("button"), {
+      className,
+      innerHTML: `<img src='${imgSrc}'>${text}`,
+    });
+  }
+
+  const BtnDelete: HTMLButtonElement = createButton("icon-center", "./ui/assets/trash.svg", "Delete");
+  const BtnFavorite: HTMLButtonElement = createButton("icon-center", "./ui/assets/heart.svg", "Favorite");
+  const BtnDuplicate: HTMLButtonElement = createButton("icon-center", "./ui/assets/duplicate.svg", "Duplicate");
+  const BtnRename: HTMLButtonElement = createButton("icon-center", "./ui/assets/rename.svg", "Rename");
+  const BtnOpen: HTMLButtonElement = createButton("icon-center", "./ui/assets/open.svg", "Open");
+
+  BtnOpen.onclick = function () {
+    console.log(`OPEN IN DEFAULT APP: ` + item.name);
     invoke("open_file_in_default_app", { path: item.path });
+  };
+
+  BtnDelete.onclick = function () {
+    console.log(`DELETE ITEM: ` + item.name);
+    deleteItem(item.path);
   };
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(btn_open, btn_rename, btn_delete, btn_favorite, btn_duplicate);
+  actions.append(BtnOpen, BtnRename, BtnDelete, BtnFavorite, BtnDuplicate);
 
   const imgContainer = document.createElement("div");
   imgContainer.id = "selected-item-img-container";
