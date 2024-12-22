@@ -118,16 +118,19 @@ div#content #items-grid button div.thumbnail {
 
 div#content #items-grid button div.thumbnail img,
 div#content #items-grid button div.thumbnail video {
-  /* border-radius: 3px;
+  /* border-radius: 3px; */
+
   height: auto;
   max-height: 100%;
   max-width: 100%;
-  width: auto; */
+  width: auto;
+  object-fit: contain;
+  flex-grow: 1;
 
-  border-radius: 0.8px;
-  max-width: 10%;
+  /* border-radius: 0.8px; */
+  /* max-width: 10%;
   max-height: 10%;
-  transform: scale(10);
+  transform: scale(10); */
 }
 
 div#content #items-grid button#btn-load-more {
@@ -205,16 +208,19 @@ div#content div#selected-file div#selected-item-img-container:hover {
 
 div#content div#selected-file div#selected-item-img-container img,
 div#content div#selected-file div#selected-item-img-container video {
-  /* border-radius: 8px;
+  /* border-radius: 8px; */
   height: auto;
   max-height: 100%;
   max-width: 100%;
-  width: auto; */
+  width: auto;
 
-  border-radius: 0.5px;
+  object-fit: contain;
+  flex-grow: 1;
+
+  /* border-radius: 0.5px;
   max-width: 5%;
   max-height: 5%;
-  transform: scale(20);
+  transform: scale(20); */
 }
 
 div#content div#selected-file div#actions {
@@ -250,7 +256,7 @@ div#content div#selected-file div#info p {
 div#content div#selected-file div#info p span {
   float: right;
   color: var(--text-d2);
-  max-width: 65%;
+  /* max-width: 65%;   */
   text-align: right;
   -webkit-user-select: text; /* Safari */
   -ms-user-select: text; /* IE 10 and IE 11 */

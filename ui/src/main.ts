@@ -170,19 +170,21 @@ document.getElementById("btn-settings")?.addEventListener("click", async () => {
 async function goToFolder(selected_folder_path: string) {
   // get start time
   const startTime = Date.now();
+  // show content page
   changePage("content");
 
+  // set bottom bar
   document.querySelector("#bottom-bar-info").setAttribute("style", "display: none;");
   document.querySelector("#bottom-bar-loading").setAttribute("style", "display: flex;");
 
-  // get the selected sort
+  // get sort
   const sort = (document.querySelector("#sort") as HTMLSelectElement).value.split("_");
-
-  console.log("GOING TO FOLDER:");
-  console.log(selected_folder_path);
-
-  console.log("WITH SORT:");
-  console.log(sort);
+  // print
+  console.log("GOING TO FOLDER");
+  console.log(" - Path: " + selected_folder_path);
+  console.log(" - Sort: " + sort);
+  console.log(" - View: " + view);
+  console.log(" - Recursive: " + recursive);
 
   // push to history
   // if is at last index in history
@@ -216,11 +218,9 @@ async function goToFolder(selected_folder_path: string) {
     document.querySelector("#btn-forward").classList.add("disabled");
   }
 
-  console.log("HISTORY");
-  console.log(history);
-  console.log(historyIndex);
+  console.log(" - History index: " + historyIndex);
 
-  console.log("REQUESTED DATA AT " + formatMs(Date.now() - startTime));
+  console.log(" - Requested Data...");
 
   let data: ItemsList = await invoke("get_items_from_path", {
     selectedFolder: selected_folder_path,
@@ -234,15 +234,12 @@ async function goToFolder(selected_folder_path: string) {
     goToFolder(selected_folder_path);
   };
 
-  // console.log("received data:");
-  console.log(data);
-
   selectedItem.index = -1;
 
-  console.log("RECEIVED DATA AT " + formatMs(Date.now() - startTime));
-  console.log("displaying items...");
+  console.log(" - Received Data:");
+  console.log(data);
+  console.log(" - Displaying Items...");
   displayItems(data);
-  console.log("DISPLAYED ITEMS AT " + formatMs(Date.now() - startTime));
 
   // calculate and display elapsed time of getting items and then displaying them
   let elapsedTime = formatMs(Date.now() - startTime);
@@ -255,10 +252,8 @@ async function goToFolder(selected_folder_path: string) {
 
 function generatePathButtons(vec: string[]) {
   // const vec = data.path.split("/");
-  console.log("path:");
   vec[0] = "/";
   // vec[1] = ""
-  console.log(vec);
   if (document.querySelector("#path")) document.querySelector("#path").innerHTML = "";
   for (let i = 0; i < vec.length; i++) {
     if (vec[i] == "" || i == 0 || i == 1) continue;
@@ -286,7 +281,6 @@ function displayItems(data: ItemsList): void {
   changePage("content");
 
   const itemsContainer = document.querySelector(".items-container.active");
-  console.log(itemsContainer);
   // clear
   document.querySelectorAll(".items-container").forEach((c) => (c.innerHTML = ""));
 
@@ -305,9 +299,6 @@ function displayItems(data: ItemsList): void {
     console.log("displayed files (folder is empty)");
     return;
   }
-
-  // get the view
-  console.log("VIEW: " + view);
 
   const load_more = document.createElement("button");
   load_more.innerHTML = "Load More";
@@ -390,8 +381,8 @@ function displayItems(data: ItemsList): void {
         selectItem(item, itemContainer, thispage * page_size + i);
       };
 
-      // select the first item
-      if (i == 0) itemContainer.click();
+      // if first item on first page, select it
+      if (i == 0 && current_page == 0) itemContainer.click();
 
       // handle double click
       itemContainer.ondblclick = function () {
@@ -413,7 +404,6 @@ function displayItems(data: ItemsList): void {
     }
   }
 
-  console.log("displayed files");
 }
 
 function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
@@ -430,7 +420,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   selectedItem.index = index;
   selectedItem.path = item.path;
-  console.log("SELECTED ITEM");
+  console.log("SELECTED ITEM:");
   console.log(selectedItem);
 
   const sidebar = document.querySelector("#selected-file");
@@ -539,19 +529,27 @@ function deleteItem(path: String) {
 const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
     case "ArrowRight":
+      event.preventDefault();
+      event.stopPropagation();
       console.log("ARROW RIGHT");
       nextItem();
       break;
     case "ArrowLeft":
+      event.preventDefault();
+      event.stopPropagation();
       console.log("ARROW LEFT");
       previousItem();
       break;
     case "ArrowDown":
+      event.preventDefault();
+      event.stopPropagation();
       console.log("ARROW DOWN");
       if (view == "table") nextItem();
       if (view == "grid") navigateGrid("down");
       break;
     case "ArrowUp":
+      event.preventDefault();
+      event.stopPropagation();
       console.log("ARROW UP");
       if (view == "table") previousItem();
       if (view == "grid") navigateGrid("up");
@@ -628,10 +626,15 @@ function navigateGrid(direction: string) {
       itemAbove.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   } else if (direction == "down") {
+    console.log(selectedItem.index);
+    console.log(columnCount);
+
     // if no items below
-    if (selectedItem.index > itemList.length - columnCount) return;
+    // if (selectedItem.index > itemList.length - columnCount) return;
     // get item below
     const itemBelow = itemList[selectedItem.index + columnCount] as HTMLButtonElement;
+    console.log(itemList);
+    console.log(itemBelow);
     if (itemBelow) {
       itemBelow.click();
       itemBelow.scrollIntoView({ behavior: "smooth", block: "nearest" });

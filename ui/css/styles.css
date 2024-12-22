@@ -99,9 +99,10 @@
   flex-direction: row;
   box-sizing: border-box;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   padding: 0 8px;
   max-width: calc(100vw - var(--sidenav-width));
+  overflow: hidden;
   border-bottom: 1px solid var(--bg-1);
 }
 
@@ -113,6 +114,7 @@
 
 #topnav #path button {
   color: var(--text-d2);
+  white-space: nowrap;
 }
 
 #topnav #path button:last-child {
@@ -121,7 +123,8 @@
 
 #topnav #path img {
   height: 18px;
-  width: 16px;
+  opacity: 75%;
+  width: 12px;
   object-fit: cover;
 }
 
@@ -192,6 +195,6 @@
 
 #bottom-bar div div:nth-child(4){
   overflow: hidden;
-  max-width: 65%;
+  /* max-width: 65%; */
   text-overflow: ellipsis;
 }

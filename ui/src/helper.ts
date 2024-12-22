@@ -1,6 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 
-
 export interface Item {
   item_type: string;
   index: number;
@@ -39,7 +38,7 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
   const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "KB", "MB", "GG", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = ["Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -174,7 +173,8 @@ export function generateItemPreview(
     default:
       // any other file (text file or something else)
       elem = document.createElement("img");
-      elem.src = `ui/assets/files/${item.extension.toLowerCase()}.svg`;
+      // elem.src = `ui/assets/files/${item.extension.toLowerCase()}.svg`;
+      elem.src = "ui/assets/files/file.svg";
       break;
   }
   elem.addEventListener(
@@ -197,7 +197,6 @@ export function formatItemType(type: string): string {
 }
 
 export function changePage(page: string): void {
-  console.log(page);
   document.querySelector("#settings").setAttribute("style", "display: none;");
   document.querySelector("#home").setAttribute("style", "display: none;");
   document.querySelector("#content").setAttribute("style", "display: none;");
@@ -216,8 +215,6 @@ export function changePage(page: string): void {
 }
 
 export function changeView(v: string): void {
-  console.log(v);
-
   // remove active from all buttons
   document.querySelectorAll("#view-type-btns button").forEach((btn) => btn.classList.remove("active"));
   // set one to active
