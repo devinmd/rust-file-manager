@@ -533,16 +533,28 @@ function deleteItem(path: String) {
 }
 
 // disable context menu
-document.addEventListener("contextmenu", (event) => event.preventDefault());
+// document.addEventListener("contextmenu", (event) => event.preventDefault());
 
 // navigate selected item with arrow keys
 const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
     case "ArrowRight":
+      console.log("ARROW RIGHT");
       nextItem();
       break;
     case "ArrowLeft":
+      console.log("ARROW LEFT");
       previousItem();
+      break;
+    case "ArrowDown":
+      console.log("ARROW DOWN");
+      if (view == "table") nextItem();
+      if (view == "grid") navigateGrid("down");
+      break;
+    case "ArrowUp":
+      console.log("ARROW UP");
+      if (view == "table") previousItem();
+      if (view == "grid") navigateGrid("up");
       break;
     case "Enter":
       // disable default functionality
@@ -598,21 +610,46 @@ const keyPress = (event: KeyboardEvent) => {
 
 document.addEventListener("keydown", keyPress);
 
+function navigateGrid(direction: string) {
+  const itemList = document.querySelector(".items-container.active").children;
+  const columnCount = getComputedStyle(document.querySelector(".items-container.active")).gridTemplateColumns.split(
+    " "
+  ).length;
+  if (direction == "up") {
+    // if there are no items above
+    if (selectedItem.index < columnCount) return;
+    // get item above
+    const itemAbove = itemList[selectedItem.index - columnCount] as HTMLButtonElement;
+    if (itemAbove) itemAbove.click();
+  } else if (direction == "down") {
+    // if no items below
+    if (selectedItem.index > itemList.length - columnCount) return;
+    // get item below
+    const itemBelow = itemList[selectedItem.index + columnCount] as HTMLButtonElement;
+    if (itemBelow) itemBelow.click();
+  }
+}
+
 function openItem() {
-  let itemList = document.querySelector(".items-container.active").children;
-  let item = itemList[selectedItem.index] as HTMLButtonElement;
+  console.log("OPEN");
+  const itemList = document.querySelector(".items-container.active").children;
+  const item = itemList[selectedItem.index] as HTMLButtonElement;
   item.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
 }
 
 function nextItem() {
-  let itemList = document.querySelector(".items-container.active").children;
-  let nextItemElem = itemList[selectedItem.index + 1] as HTMLButtonElement;
+  console.log("NEXT");
+  const itemList = document.querySelector(".items-container.active").children;
+  const nextItemElem = itemList[selectedItem.index + 1] as HTMLButtonElement;
   if (nextItemElem) nextItemElem.click();
 }
 
 function previousItem() {
-  let itemList = document.querySelector(".items-container.active").children;
-  let previousItemElem = itemList[selectedItem.index - 1] as HTMLButtonElement;
+  console.log("PREVIOUS");
+  const itemList = document.querySelector(".items-container.active").children;
+  console.log(itemList); // for some reason printing here fixes the bug
+  console.log(selectedItem.index);
+  const previousItemElem = itemList[selectedItem.index - 1] as HTMLButtonElement;
   if (previousItemElem) previousItemElem.click();
 }
 

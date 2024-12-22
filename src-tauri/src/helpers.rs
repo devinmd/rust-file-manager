@@ -1,5 +1,4 @@
 use serde::Serialize;
-
 // store the information of a file or folder
 #[derive(Serialize)]
 pub struct ItemInfoStruct {
@@ -13,7 +12,6 @@ pub struct ItemInfoStruct {
     pub item_type: String,
     pub extension: String,
 }
-
 // container of items with additional information, this is what is returned to the frontend
 #[derive(Serialize)]
 pub struct ItemsInfoContainerStruct {

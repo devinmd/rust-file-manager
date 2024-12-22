@@ -15,9 +15,7 @@ use helpers::{
 
 extern crate rusqlite;
 use lazy_static::lazy_static;
-use rusqlite::{ params, Connection, OptionalExtension, Result };
-use serde::Serialize;
-use std::fs::File;
+use rusqlite::{ params, Connection, Result };
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Mutex;
