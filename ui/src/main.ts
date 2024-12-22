@@ -610,8 +610,11 @@ const keyPress = (event: KeyboardEvent) => {
 
 document.addEventListener("keydown", keyPress);
 
+// handle up and down arrow navigation in grid view
 function navigateGrid(direction: string) {
-  const itemList = document.querySelector(".items-container.active").children;
+  // list of grid items (html buttons)
+  const itemList = document.querySelector(".items-container.active")?.children as HTMLCollectionOf<HTMLButtonElement>;
+  // get list of columns
   const columnCount = getComputedStyle(document.querySelector(".items-container.active")).gridTemplateColumns.split(
     " "
   ).length;
@@ -620,37 +623,49 @@ function navigateGrid(direction: string) {
     if (selectedItem.index < columnCount) return;
     // get item above
     const itemAbove = itemList[selectedItem.index - columnCount] as HTMLButtonElement;
-    if (itemAbove) itemAbove.click();
+    if (itemAbove) {
+      itemAbove.click();
+      itemAbove.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   } else if (direction == "down") {
     // if no items below
     if (selectedItem.index > itemList.length - columnCount) return;
     // get item below
     const itemBelow = itemList[selectedItem.index + columnCount] as HTMLButtonElement;
-    if (itemBelow) itemBelow.click();
+    if (itemBelow) {
+      itemBelow.click();
+      itemBelow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 }
 
 function openItem() {
   console.log("OPEN");
-  const itemList = document.querySelector(".items-container.active").children;
+  const itemList = document.querySelector(".items-container.active")?.children as HTMLCollectionOf<HTMLButtonElement>;
   const item = itemList[selectedItem.index] as HTMLButtonElement;
   item.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
 }
 
 function nextItem() {
   console.log("NEXT");
-  const itemList = document.querySelector(".items-container.active").children;
+  const itemList = document.querySelector(".items-container.active")?.children as HTMLCollectionOf<HTMLButtonElement>;
   const nextItemElem = itemList[selectedItem.index + 1] as HTMLButtonElement;
-  if (nextItemElem) nextItemElem.click();
+  if (nextItemElem) {
+    nextItemElem.click();
+    nextItemElem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
 function previousItem() {
   console.log("PREVIOUS");
-  const itemList = document.querySelector(".items-container.active").children;
+  const itemList = document.querySelector(".items-container.active")?.children as HTMLCollectionOf<HTMLButtonElement>;
   console.log(itemList); // for some reason printing here fixes the bug
   console.log(selectedItem.index);
   const previousItemElem = itemList[selectedItem.index - 1] as HTMLButtonElement;
-  if (previousItemElem) previousItemElem.click();
+  if (previousItemElem) {
+    previousItemElem.click();
+    previousItemElem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
 function changeTheme(t: string): void {
