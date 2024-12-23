@@ -403,7 +403,6 @@ function displayItems(data: ItemsList): void {
       itemsContainer.appendChild(load_more);
     }
   }
-
 }
 
 function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
@@ -429,10 +428,24 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   let toAppend = [];
 
   // file name
+  const itemNameContainer = document.createElement("div");
+  itemNameContainer.id = "item-name-container";
+
   const item_name = document.createElement("h3");
   item_name.id = "item-name";
   item_name.innerHTML = item.name;
 
+  const renameInput = document.createElement("input");
+  renameInput.type = "text";
+  renameInput.id = "input-rename";
+  if (item.extension) {
+    renameInput.value = item.name.replace("." + item.extension, "");
+  } else {
+    renameInput.value = item.name;
+  }
+  renameInput.style.display = "none";
+
+  itemNameContainer.append(renameInput, item_name);
   // text
   const info = document.createElement("div");
   info.id = "info";
@@ -488,6 +501,38 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
     invoke("open_file_in_default_app", { path: item.path });
   };
 
+  BtnRename.onclick = function () {
+    item_name.innerHTML = item.extension ? "." + item.extension : "";
+    renameInput.style.display = "block";
+    BtnRename.style.backgroundColor = "var(--bg-2)";
+    renameInput.focus();
+    renameInput.select();
+  };
+
+  renameInput.addEventListener("keydown", ({ key }) => {
+    if (key === "Enter") {
+      // confirm rename
+      const itemContainer = item.path.replace(item.name, "");
+      BtnRename.style.backgroundColor = "var(--bg-1)";
+      renameInput.value = renameInput.value.replaceAll(".", "").replaceAll("/", "").replaceAll("\\", "");
+      if (renameInput.value.replaceAll(" ", "") == "") {
+        // if empty name
+        invoke("rename_item", { path: item.path, new: item.name });
+      } else {
+        const newPath = itemContainer + renameInput.value + (item.extension ? "." + item.extension : "");
+        console.log("RENAME: " + newPath);
+        invoke("rename_item", {
+          path: item.path,
+          new: newPath,
+        });
+      }
+      // hide button
+      renameInput.style.display = "none";
+      // refresh
+      (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+    }
+  });
+
   BtnDelete.onclick = function () {
     console.log(`DELETE ITEM: ` + item.name);
     deleteItem(item.path);
@@ -501,7 +546,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   imgContainer.id = "selected-item-img-container";
   imgContainer.append(generateItemPreview(item, true));
 
-  sidebar.append(imgContainer, item_name, info, actions);
+  sidebar.append(imgContainer, itemNameContainer, info, actions);
 }
 
 function deleteItem(path: String) {
@@ -528,37 +573,37 @@ function deleteItem(path: String) {
 // navigate selected item with arrow keys
 const keyPress = (event: KeyboardEvent) => {
   switch (event.key) {
-    case "ArrowRight":
-      event.preventDefault();
-      event.stopPropagation();
-      console.log("ARROW RIGHT");
-      nextItem();
-      break;
-    case "ArrowLeft":
-      event.preventDefault();
-      event.stopPropagation();
-      console.log("ARROW LEFT");
-      previousItem();
-      break;
-    case "ArrowDown":
-      event.preventDefault();
-      event.stopPropagation();
-      console.log("ARROW DOWN");
-      if (view == "table") nextItem();
-      if (view == "grid") navigateGrid("down");
-      break;
-    case "ArrowUp":
-      event.preventDefault();
-      event.stopPropagation();
-      console.log("ARROW UP");
-      if (view == "table") previousItem();
-      if (view == "grid") navigateGrid("up");
-      break;
+    // case "ArrowRight":
+    // event.preventDefault();
+    // event.stopPropagation();
+    // console.log("ARROW RIGHT");
+    // nextItem();
+    // break;
+    // case "ArrowLeft":
+    // event.preventDefault();
+    // event.stopPropagation();
+    // console.log("ARROW LEFT");
+    // previousItem();
+    // break;
+    // case "ArrowDown":
+    // event.preventDefault();
+    // event.stopPropagation();
+    // console.log("ARROW DOWN");
+    // if (view == "table") nextItem();
+    // if (view == "grid") navigateGrid("down");
+    // break;
+    // case "ArrowUp":
+    // event.preventDefault();
+    // event.stopPropagation();
+    // console.log("ARROW UP");
+    // if (view == "table") previousItem();
+    // if (view == "grid") navigateGrid("up");
+    // break;
     case "Enter":
       // disable default functionality
       event.preventDefault();
       event.stopPropagation();
-      openItem();
+      // openItem();
       break;
     case "Tab":
       // disable default functionality
@@ -630,7 +675,7 @@ function navigateGrid(direction: string) {
     console.log(columnCount);
 
     // if no items below
-    // if (selectedItem.index > itemList.length - columnCount) return;
+    if (selectedItem.index > itemList.length - columnCount) return;
     // get item below
     const itemBelow = itemList[selectedItem.index + columnCount] as HTMLButtonElement;
     console.log(itemList);

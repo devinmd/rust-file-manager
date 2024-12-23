@@ -181,6 +181,14 @@ fn send_file_to_trash(path: String) -> Result<(), String> {
 #[tauri::command]
 fn rename_item(path: String, new: String) {
     print!("{}", new);
+
+    // Check if the target file already exists
+    if Path::new(&new).exists() {
+        eprintln!("Failed to rename item: A file with the new name already exists.");
+        return;
+    }
+
+    // Attempt to rename
     match fs::rename(&path, &new) {
         Ok(_) => println!("Item renamed successfully"),
         Err(e) => eprintln!("Failed to rename item: {}", e),

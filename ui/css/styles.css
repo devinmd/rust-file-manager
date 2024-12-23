@@ -113,12 +113,12 @@
 }
 
 #topnav #path button {
-  color: var(--text-d2);
+  color: var(--text-d1);
   white-space: nowrap;
 }
 
 #topnav #path button:last-child {
-  color: var(--text-d1);
+  color: var(--text-b);
 }
 
 #topnav #path img {
@@ -193,7 +193,7 @@
   color: var(--text-d3);
 }
 
-#bottom-bar div div:nth-child(4){
+#bottom-bar div div:nth-child(4) {
   overflow: hidden;
   /* max-width: 65%; */
   text-overflow: ellipsis;
