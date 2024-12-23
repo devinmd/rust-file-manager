@@ -24,6 +24,7 @@ const page_size = 64; // increasing page size does not have an effect on loading
 var recursive = false;
 var history = [];
 var historyIndex = -1;
+var defaultItemIndex = 0;
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
@@ -382,7 +383,7 @@ function displayItems(data: ItemsList): void {
       };
 
       // if first item on first page, select it
-      if (i == 0 && current_page == 0) itemContainer.click();
+      if (i == defaultItemIndex && current_page == 0) itemContainer.click();
 
       // handle double click
       itemContainer.ondblclick = function () {
@@ -403,6 +404,7 @@ function displayItems(data: ItemsList): void {
       itemsContainer.appendChild(load_more);
     }
   }
+  defaultItemIndex = 0;
 }
 
 function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number): void {
@@ -502,34 +504,42 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   };
 
   BtnRename.onclick = function () {
-    item_name.innerHTML = item.extension ? "." + item.extension : "";
-    renameInput.style.display = "block";
-    BtnRename.style.backgroundColor = "var(--bg-2)";
-    renameInput.focus();
-    renameInput.select();
+    if (renameInput.style.display == "none") {
+      item_name.innerHTML = item.extension ? "." + item.extension : "";
+      renameInput.style.display = "block";
+      BtnRename.style.backgroundColor = "var(--bg-2)";
+      renameInput.focus();
+      renameInput.select();
+    } else {
+      confirmRename();
+    }
   };
+
+  function confirmRename() {
+    const itemContainer1 = item.path.replace(item.name, "");
+    BtnRename.style.backgroundColor = "var(--bg-1)";
+    renameInput.value = renameInput.value.replaceAll(".", "").replaceAll("/", "").replaceAll("\\", "");
+    const newPath = itemContainer1 + renameInput.value + (item.extension ? "." + item.extension : "");
+    if (renameInput.value.replaceAll(" ", "") == "" || newPath == item.path) {
+      // if empty name or name is same, do nothing
+    } else {
+      console.log("RENAME: " + newPath);
+      invoke("rename_item", {
+        path: item.path,
+        new: newPath,
+      });
+    }
+    // hide button
+    renameInput.style.display = "none";
+    // refresh
+    defaultItemIndex = index;
+    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+  }
 
   renameInput.addEventListener("keydown", ({ key }) => {
     if (key === "Enter") {
       // confirm rename
-      const itemContainer = item.path.replace(item.name, "");
-      BtnRename.style.backgroundColor = "var(--bg-1)";
-      renameInput.value = renameInput.value.replaceAll(".", "").replaceAll("/", "").replaceAll("\\", "");
-      if (renameInput.value.replaceAll(" ", "") == "") {
-        // if empty name
-        invoke("rename_item", { path: item.path, new: item.name });
-      } else {
-        const newPath = itemContainer + renameInput.value + (item.extension ? "." + item.extension : "");
-        console.log("RENAME: " + newPath);
-        invoke("rename_item", {
-          path: item.path,
-          new: newPath,
-        });
-      }
-      // hide button
-      renameInput.style.display = "none";
-      // refresh
-      (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
+      confirmRename();
     }
   });
 
