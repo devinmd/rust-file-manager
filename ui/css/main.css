@@ -67,12 +67,12 @@ table {
 }
 
 img {
-  image-rendering: optimizeSpeed; 
+  image-rendering: optimizeSpeed;
   image-rendering: -moz-crisp-edges;
-  image-rendering: -o-crisp-edges; 
-  image-rendering: -webkit-optimize-contrast; 
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
   image-rendering: pixelated;
-  image-rendering: optimize-contrast; 
+  image-rendering: optimize-contrast;
   -ms-interpolation-mode: nearest-neighbor;
 }
 
@@ -167,11 +167,11 @@ button {
   border: none;
   background-color: var(--bg-1);
   padding: 0 var(--button-padding);
-  cursor: pointer;
+  /* cursor: pointer; */
   font-weight: 400;
   color: var(--text-d2);
   letter-spacing: 0.01em;
-  transition: 80ms;
+  transition: 30ms;
 }
 
 button:hover {
@@ -181,6 +181,10 @@ button:hover {
 button.clear {
   background-color: transparent;
   text-align: left;
+}
+
+button.clear.border {
+  border: 1px solid var(bg-1);
 }
 
 button.clear:hover {
@@ -216,7 +220,7 @@ button.icon-center img {
   width: auto;
 }
 
-button.disabled {
+button.disabled, button:disabled {
   cursor: default;
   opacity: 50%;
 }
@@ -226,19 +230,20 @@ button.clear.disabled:hover {
 }
 
 select {
-  color: var(--text-d1);
+  color: var(--text-d2);
   font-size: var(--button-text-size);
   height: var(--button-height);
-  background-color: var(--bg-1);
+  background-color: var(--bg);
+  border: 1px solid var(--bg-1);
   appearance: none;
   -webkit-appearance: none;
   border-radius: var(--button-radius);
-  border: none;
   padding: 0 var(--button-padding);
-  cursor: pointer;
+  /* cursor: pointer; */
   font-weight: 400;
+  outline: none;
 }
 
 select:hover {
-  background-color: var(--bg-2);
+  background-color: var(--bg-1);
 }

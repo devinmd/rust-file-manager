@@ -123,9 +123,6 @@ export function generateItemPreview(
         case "screenshots":
           elem.src = "ui/assets/folders/screenshots.svg";
           break;
-        case "users":
-          elem.src = "ui/assets/folders/users.svg";
-          break;
         case "music":
         case "songs":
         case "audio":

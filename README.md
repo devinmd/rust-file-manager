@@ -27,7 +27,6 @@ BUGS
 
 FEATURES
 - search
-- rename folders & files
 - tags and custom metadata
 - favorite files & folders
 - show or hide hidden files (dotfiles)
@@ -51,23 +50,20 @@ BACKBURNER
 - option to cancel extremely large recursive functions otherwise the user must force quit the app
   - cancel button where it currently says Loading on the bottom bar
 - custom themes
-- handle .app "folders"
 - support for file servers
 - make file dates local time, not gmt
 - create files & folders
 - preview text files
-- find similar images with phash function
+- find similar images with phash
 - find duplicate files
 - moving files
   - cut, copy, paste files
-  - selecting multiple files
-    - ctrl, shift + click
-    - dragging to select
+  - selecting multiple files with shift and ctrl
+  - dragging
 - 3d model preview
 - zip & unzip files
 - more detailed info on preview info
   - video duration
   - audio file duration
   - camera info
-- "open with" btn
-  - vscode, paint.net, photoshop, notepad, photos, web browser, etc.
+- "open with" button

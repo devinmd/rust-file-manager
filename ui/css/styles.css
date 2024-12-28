@@ -43,6 +43,10 @@
 
 #sidenav button {
   width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #sidenav p {

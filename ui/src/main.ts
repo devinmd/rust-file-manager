@@ -64,16 +64,28 @@ async function get_system_info() {
   let disks = data.disks;
   document.querySelector("#greeting").innerHTML = data.name;
   disks[0].name = data.name;
+
   for (let i in disks) {
     let d = disks[i];
+    // display info on home page
     let container = document.createElement("div");
     let name = document.createElement("p");
     name.innerHTML = `${d.name} (${d.mount_point})`;
     let text = document.createElement("p");
     text.innerHTML = `${formatBytes(d.available_space)} of ${formatBytes(d.total_space)} free`;
-
     container.append(name, text);
-    document.querySelector("#drives").append(container);
+    document.querySelector("#home #drives").append(container);
+
+    if (!d.is_removable) continue;
+
+    // display info on side nav
+    let container1 = document.createElement("button");
+    container1.className = "clear";
+    container1.onclick = function () {
+      goToFolder(d.mount_point);
+    };
+    container1.innerHTML = d.name;
+    document.querySelector("#sidenav #drives").append(container1);
   }
 }
 
@@ -293,10 +305,10 @@ function displayItems(data: ItemsList): void {
 
   // if folder is empty
   if (data.items.length == 0) {
-    let empty_folder_text = document.createElement("h5");
-    empty_folder_text.innerHTML = `This Folder is Empty`;
+    let empty_folder_text = document.createElement("p");
+    empty_folder_text.innerHTML = `No Items`;
     empty_folder_text.className = "empty-folder-text";
-    document.querySelector("#content").append(empty_folder_text);
+    itemsContainer.append(empty_folder_text);
     console.log("displayed files (folder is empty)");
     return;
   }
@@ -440,11 +452,6 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
   const renameInput = document.createElement("input");
   renameInput.type = "text";
   renameInput.id = "input-rename";
-  if (item.extension) {
-    renameInput.value = item.name.replace("." + item.extension, "");
-  } else {
-    renameInput.value = item.name;
-  }
   renameInput.style.display = "none";
 
   itemNameContainer.append(renameInput, item_name);
@@ -505,35 +512,44 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   BtnRename.onclick = function () {
     if (renameInput.style.display == "none") {
+      // set value of the input to the filename minus the extension
+      if (item.extension) {
+        renameInput.value = item.name.replace("." + item.extension, "");
+      } else {
+        renameInput.value = item.name;
+      }
       item_name.innerHTML = item.extension ? "." + item.extension : "";
       renameInput.style.display = "block";
       BtnRename.style.backgroundColor = "var(--bg-2)";
       renameInput.focus();
       renameInput.select();
     } else {
+      // if rename input already visible, confirm the rename
       confirmRename();
     }
   };
 
   function confirmRename() {
-    const itemContainer1 = item.path.replace(item.name, "");
-    BtnRename.style.backgroundColor = "var(--bg-1)";
+    // reset button background color
     renameInput.value = renameInput.value.replaceAll(".", "").replaceAll("/", "").replaceAll("\\", "");
-    const newPath = itemContainer1 + renameInput.value + (item.extension ? "." + item.extension : "");
+    const newPath = item.path.replace(item.name, "") + renameInput.value + (item.extension ? "." + item.extension : "");
+    // hide input
+    renameInput.style.display = "none";
+    BtnRename.style.backgroundColor = "var(--bg-1)";
+    // check if name changed or name is empty
     if (renameInput.value.replaceAll(" ", "") == "" || newPath == item.path) {
-      // if empty name or name is same, do nothing
+      // if empty name or name is same, reset text and do nothing
+      item_name.innerHTML = item.name;
     } else {
       console.log("RENAME: " + newPath);
       invoke("rename_item", {
         path: item.path,
         new: newPath,
       });
+      // set select index and refresh
+      defaultItemIndex = index;
+      (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
     }
-    // hide button
-    renameInput.style.display = "none";
-    // refresh
-    defaultItemIndex = index;
-    (document.querySelector("#btn-refresh") as HTMLButtonElement)?.click();
   }
 
   renameInput.addEventListener("keydown", ({ key }) => {
@@ -550,7 +566,7 @@ function selectItem(item: Item, itemContainer: HTMLButtonElement, index: number)
 
   const actions = document.createElement("div");
   actions.id = "actions";
-  actions.append(BtnOpen, BtnRename, BtnDelete, BtnFavorite, BtnDuplicate);
+  actions.append(BtnOpen, BtnRename, BtnDelete /*, BtnFavorite, BtnDuplicate*/);
 
   const imgContainer = document.createElement("div");
   imgContainer.id = "selected-item-img-container";

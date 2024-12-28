@@ -11,7 +11,7 @@ use helpers::{
     ItemsInfoContainerStruct,
     SystemInfoStruct,
     UserDataStruct,
-}; // Bring specific structs into scope
+}; 
 
 extern crate rusqlite;
 use lazy_static::lazy_static;
@@ -22,6 +22,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 use sysinfo::{ Disks, System };
 use trash;
+use walkdir::WalkDir;
 
 lazy_static! {
     static ref DB_CONNECTION: Mutex<Connection> = Mutex::new(
@@ -78,7 +79,7 @@ fn set_userdata(
 }
 
 fn prepare_db() -> Result<()> {
-    let conn = DB_CONNECTION.lock().unwrap();
+    let conn: std::sync::MutexGuard<'_, Connection> = DB_CONNECTION.lock().unwrap();
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS userdata (
@@ -118,9 +119,6 @@ fn prepare_db() -> Result<()> {
     Ok(())
 }
 
-// use std::ffi::OsString;
-// use std::os::windows::fs::MetadataExt;
-
 #[tauri::command]
 fn open_file_in_default_app(path: String) {
     match open::that(path) {
@@ -132,7 +130,6 @@ fn open_file_in_default_app(path: String) {
 #[tauri::command]
 fn get_system_info() -> Result<SystemInfoStruct, String> {
     let mut sys: System = System::new_all();
-
     sys.refresh_all();
 
     let os: Option<String> = System::name().map(|s| s.to_string());
@@ -155,7 +152,7 @@ fn get_system_info() -> Result<SystemInfoStruct, String> {
         });
     }
 
-    let info = SystemInfoStruct {
+    let info: SystemInfoStruct = SystemInfoStruct {
         os,
         version,
         name,
@@ -244,8 +241,6 @@ fn get_userdata() -> Result<UserDataStruct, String> {
     Ok(data)
 }
 
-use walkdir::WalkDir;
-
 // Helper function to strip the "\\?\" prefix if it exists (Windows specific)
 fn strip_prefix(path: &Path) -> PathBuf {
     let path_str = path.to_str().unwrap_or_default();
@@ -319,7 +314,7 @@ async fn get_items_from_path(
 
     // update database with new last_folder
     if let Err(e) = set_userdata(&*conn, "last_folder", &selected_folder.clone()) {
-        eprintln!("Failed to set user data: {}", e);
+        eprintln!("Failed to set user data last folder: {}", e);
     }
 
     // final struct that will be sent to frontend
