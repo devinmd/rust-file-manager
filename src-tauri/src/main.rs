@@ -310,7 +310,7 @@ async fn get_items_from_path(
 ) -> Result<ItemsInfoContainerStruct, String> {
     use std::fs;
 
-    let conn = DB_CONNECTION.lock().unwrap();
+    let conn: std::sync::MutexGuard<'_, Connection> = DB_CONNECTION.lock().unwrap();
 
     // update database with new last_folder
     if let Err(e) = set_userdata(&*conn, "last_folder", &selected_folder.clone()) {
@@ -318,24 +318,23 @@ async fn get_items_from_path(
     }
 
     // final struct that will be sent to frontend
-    let mut info = ItemsInfoContainerStruct {
+    let mut info: ItemsInfoContainerStruct = ItemsInfoContainerStruct {
         items: Vec::new(),
         path: selected_folder.clone(),
     };
 
     // get time
-    let mut now = Instant::now();
+    let mut now: Instant = Instant::now();
 
     // get the list of items
-    let items = read_directory_to_vec(Path::new(&selected_folder), walk, dotfiles);
+    let items: std::result::Result<Vec<PathBuf>, String> = read_directory_to_vec(Path::new(&selected_folder), walk, dotfiles);
 
     // get time
     println!("RECEIVED LIST OF ITEMS IN {:.2?}", now.elapsed());
     now = Instant::now();
 
-    // loop through each item found in that folder:
     if let Ok(entries) = items {
-        // for every entry:
+        // loop through each item found in that folder:
         for (index, entry) in entries.iter().enumerate() {
             // get path:
             let path = entry.to_str().unwrap_or("Invalid path").to_string().replace("\\", "/"); // should implement proper error handling later
@@ -434,15 +433,15 @@ async fn get_items_from_path(
                 Err(err) => {
                     eprintln!("Failed to execute the statement: {}", err);
                 }
-            }
+            } 
 
             // if the file is not in the database, retrieve metadata "manually"
 
-            let name = entry.file_name().unwrap().to_string_lossy().into_owned();
+            let name: String = entry.file_name().unwrap().to_string_lossy().into_owned();
 
             let metadata: fs::Metadata = entry.metadata().unwrap(); // Unwrap is fine here, proper error handling would be better in a real application
 
-            let container = entry
+            let container: String = entry
                 .parent()
                 .unwrap()
                 .to_string_lossy()
@@ -473,11 +472,11 @@ async fn get_items_from_path(
             // Get the extension if it exists, convert to a String, and make it lowercase
             let extension: Option<String> = entry
                 .extension()
-                .and_then(|ext| ext.to_str()) // Convert OsStr to &str
-                .map(|ext| ext.to_lowercase()); // Convert &str to lowercase String
+                .and_then(|ext: &std::ffi::OsStr| ext.to_str()) // Convert OsStr to &str
+                .map(|ext: &str| ext.to_lowercase()); // Convert &str to lowercase String
 
             // Provide a default value if the extension is None
-            let extension = extension.unwrap_or_default();
+            let extension: String = extension.unwrap_or_default();
 
             if metadata.is_dir() {
                 // is folder/
@@ -512,15 +511,15 @@ async fn get_items_from_path(
                             &path,
                             &created.map_or_else(
                                 || String::from("None"),
-                                |value| value.to_string()
+                                |value: u64| value.to_string()
                             ),
                             &modified.map_or_else(
                                 || String::from("None"),
-                                |value| value.to_string()
+                                |value: u64| value.to_string()
                             ),
                             &accessed.map_or_else(
                                 || String::from("None"),
-                                |value| value.to_string()
+                                |value: u64| value.to_string()
                             ),
                             &size_bytes.map_or("None".to_string(), |num| num.to_string()),
                         ]
@@ -563,7 +562,7 @@ async fn get_items_from_path(
         println!("Error: {}", e);
     }
 
-    // sort
+    // sort the list of items
     sort_items(&mut info.items, &sort, ascending);
 
     println!("COMPILED METADATA & SORTED ITEMS {:.2?}", now.elapsed());

@@ -13,12 +13,12 @@ import {
   ItemsList,
 } from "./helper";
 
-//
+// tauri methods
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 
 // globals
-var view = "grid";
+var view = "table";
 var selectedItem = { index: -1, path: "" };
 const page_size = 64; // increasing page size does not have an effect on loading time
 var recursive = false;
@@ -28,33 +28,45 @@ var defaultItemIndex = 0;
 
 // on load
 window.addEventListener("DOMContentLoaded", () => {
+
   console.log("LOADED FRONTEND");
+
   console.log("REQUESTED SYSTEM INFO");
   get_system_info();
   console.log("REQUESTED USER DATA");
   get_userdata();
 
-  // set view to grid REMOVE LATER
-  (document.querySelector("#view-type-grid") as HTMLButtonElement).click();
   // set recurisve to false
   (document.querySelector("#btn-nowalk") as HTMLButtonElement)?.click();
 });
 
+// get user data here and set options based on it
 async function get_userdata() {
-  // get user data here, theme, last folder, etc.
+
+  // get the user data
   const data: UserData = await invoke("get_userdata");
   console.log("RECEIVED USER DATA:");
   console.log(data);
 
-  changeTheme(data.theme);
-
-  if (data.view) {
-    view = data.view;
+  // if a theme was found, set it
+  if(data.theme){
+    changeTheme(data.theme);
   }
 
+  // if a preferred view was found, select it
+  if (data.view) {
+    view = data.view;
+    (document.querySelector("#view-type-table") as HTMLButtonElement).click();
+
+  }else{
+    (document.querySelector("#view-type-table") as HTMLButtonElement).click();
+  }
+
+  // if a last folder was found in the data, go to it
   if (data.last_folder) {
     goToFolder(data.last_folder);
   }
+
 }
 
 async function get_system_info() {
@@ -65,15 +77,24 @@ async function get_system_info() {
   document.querySelector("#greeting").innerHTML = data.name;
   disks[0].name = data.name;
 
+  // for each drive
   for (let i in disks) {
+    //
     let d = disks[i];
+
     // display info on home page
     let container = document.createElement("div");
     let name = document.createElement("p");
-    name.innerHTML = `${d.name} (${d.mount_point})`;
+    name.innerHTML = `${d.name}<span style='float: right;'>${d.file_system} ${d.mount_point}</span>`;
     let text = document.createElement("p");
-    text.innerHTML = `${formatBytes(d.available_space)} of ${formatBytes(d.total_space)} free`;
-    container.append(name, text);
+    text.innerHTML = `${formatBytes(d.available_space,0)} / ${formatBytes(d.total_space)} free<span style='float: right;'>${Math.floor((d.space_used / d.total_space) * 100)}%</span>`;
+    let barContainer = document.createElement("div");
+
+    let bar = document.createElement("div");
+    barContainer.className = "bar";
+    bar.style.width = `${(d.space_used / d.total_space) * 100}%`;
+    barContainer.append(bar);
+    container.append(name, text,barContainer);
     document.querySelector("#home #drives").append(container);
 
     if (!d.is_removable) continue;
@@ -84,7 +105,7 @@ async function get_system_info() {
     container1.onclick = function () {
       goToFolder(d.mount_point);
     };
-    container1.innerHTML = d.name;
+    container1.innerHTML = d.mount_point + " " + d.name;
     document.querySelector("#sidenav #drives").append(container1);
   }
 }

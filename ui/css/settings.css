@@ -1,0 +1,14 @@
+
+#settings {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--topnav-height) - 1px - var(--bottom-bar-height) - 1px);
+  min-height: calc(100vh - var(--topnav-height) - 1px - var(--bottom-bar-height) - 1px);
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+#settings h1 {
+  margin-bottom: 16px;
+}

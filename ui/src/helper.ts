@@ -36,9 +36,9 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return "0 Bytes";
   if (bytes == null) return "";
 
-  const k = 1000;
+  const k = 1000; // can also used 1024 if you want binary
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
